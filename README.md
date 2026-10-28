@@ -186,6 +186,16 @@ Writing often contains intimate personal reflections:
 
 ---
 
-## 10. License
+## 10. GitHub Repository
+
+- **Repository**: [https://github.com/Shalu004/Inkling](https://github.com/Shalu004/Inkling)
+- **Clone**:
+  ```bash
+  git clone https://github.com/Shalu004/Inkling.git
+  ```
+
+---
+
+## 11. License
 
 Crafted for writers, readers, and curious minds. All rights reserved.
