@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# database
+.sanctuary_db/
+
 # vercel
 .vercel
 

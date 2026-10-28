@@ -91,6 +91,19 @@ function setStorage<T>(key: string, value: T): void {
   }
 }
 
+async function syncToServer(endpoint: string, method: string, data?: any): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    await fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  } catch {
+    // Offline or network error: ignored silently, local copy is durable
+  }
+}
+
 function getTodayKey(): string {
   return new Date().toISOString().split("T")[0];
 }
@@ -105,6 +118,7 @@ export const hybridStore = {
     const current = this.getPreferences();
     const updated = { ...current, ...prefs };
     setStorage(STORAGE_KEYS.PREFERENCES, updated);
+    syncToServer("/api/preferences", "PUT", updated);
     return updated;
   },
 
@@ -183,6 +197,7 @@ export const hybridStore = {
     }
 
     setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+    syncToServer("/api/documents", "POST", fullSession);
 
     // Track activity
     if (fullSession.wordCount > 0) {
@@ -202,12 +217,14 @@ export const hybridStore = {
     s.isFavorite = !s.isFavorite;
     s.updatedAt = new Date().toISOString();
     setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+    syncToServer("/api/documents", "POST", s);
     return s.isFavorite;
   },
 
   deleteWritingSession(id: string): void {
     const sessions = this.getWritingSessions().filter((s) => s.id !== id);
     setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+    syncToServer(`/api/documents?id=${encodeURIComponent(id)}`, "DELETE");
   },
 
   // --- AI REVIEWS ---
@@ -326,6 +343,7 @@ export const hybridStore = {
     }
 
     setStorage(STORAGE_KEYS.VOCABULARY, list);
+    syncToServer("/api/vocabulary", "POST", fullEntry);
     return fullEntry;
   },
 
@@ -337,6 +355,7 @@ export const hybridStore = {
       entry.lastReviewedAt = new Date().toISOString();
       entry.reviewCount += 1;
       setStorage(STORAGE_KEYS.VOCABULARY, list);
+      syncToServer("/api/vocabulary", "POST", entry);
 
       this.recordActivity({ vocabReviewed: 1 });
     }
@@ -348,6 +367,7 @@ export const hybridStore = {
     if (entry) {
       entry.personalExample = personalExample;
       setStorage(STORAGE_KEYS.VOCABULARY, list);
+      syncToServer("/api/vocabulary", "POST", entry);
       return entry;
     }
     return null;
@@ -359,6 +379,7 @@ export const hybridStore = {
     if (entry) {
       entry.isFavorite = !entry.isFavorite;
       setStorage(STORAGE_KEYS.VOCABULARY, list);
+      syncToServer("/api/vocabulary", "POST", entry);
       return entry.isFavorite;
     }
     return false;
@@ -367,6 +388,7 @@ export const hybridStore = {
   deleteVocabulary(id: string): void {
     const list = this.getVocabulary().filter((v) => v.id !== id);
     setStorage(STORAGE_KEYS.VOCABULARY, list);
+    syncToServer(`/api/vocabulary?id=${encodeURIComponent(id)}`, "DELETE");
   },
 
   // --- LITERARY QUOTATIONS ---
@@ -516,6 +538,7 @@ export const hybridStore = {
     }
 
     setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    syncToServer("/api/plans", "POST", fullTask);
     return fullTask;
   },
 
@@ -527,6 +550,7 @@ export const hybridStore = {
     plan.completedAt = plan.completed ? new Date().toISOString() : undefined;
     plan.updatedAt = new Date().toISOString();
     setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    syncToServer("/api/plans", "POST", plan);
     return plan.completed;
   },
 
@@ -539,12 +563,14 @@ export const hybridStore = {
     sub.completed = !sub.completed;
     plan.updatedAt = new Date().toISOString();
     setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    syncToServer("/api/plans", "POST", plan);
     return sub.completed;
   },
 
   deletePlan(id: string): void {
     const plans = this.getPlans().filter((p) => p.id !== id);
     setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    syncToServer(`/api/plans?id=${encodeURIComponent(id)}`, "DELETE");
   },
 
   // --- TWO-MINUTE SPARKS ---
@@ -867,6 +893,7 @@ export const hybridStore = {
     }
 
     setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+    syncToServer("/api/journal", "POST", fullEntry);
 
     // Track word activity silently
     const wordCount = fullEntry.body.trim().split(/\s+/).filter(Boolean).length;
@@ -880,6 +907,7 @@ export const hybridStore = {
   deleteJournalEntry(id: string): void {
     const list = this.getJournalEntries().filter((e) => e.id !== id);
     setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+    syncToServer(`/api/journal?id=${encodeURIComponent(id)}`, "DELETE");
   },
 
   toggleFavoriteJournalEntry(id: string): boolean {
@@ -888,6 +916,7 @@ export const hybridStore = {
     if (entry) {
       entry.isFavorite = !entry.isFavorite;
       setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+      syncToServer("/api/journal", "POST", entry);
       return entry.isFavorite;
     }
     return false;
@@ -938,6 +967,7 @@ export const hybridStore = {
     }
 
     setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+    syncToServer("/api/library", "POST", fullBook);
     return fullBook;
   },
 
@@ -955,6 +985,7 @@ export const hybridStore = {
         this.recordActivity({ readingsCompleted: 1 });
       }
       setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+      syncToServer("/api/library", "POST", book);
     }
   },
 
@@ -965,12 +996,14 @@ export const hybridStore = {
       book.personalNotes = notes;
       if (quotes) book.favoriteQuotes = quotes;
       setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+      syncToServer("/api/library", "POST", book);
     }
   },
 
   deleteBook(id: string): void {
     const list = this.getLibraryBooks().filter((b) => b.id !== id);
     setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+    syncToServer(`/api/library?id=${encodeURIComponent(id)}`, "DELETE");
   },
 
   // --- READING POSITION RESTORATION ---
@@ -1179,4 +1212,49 @@ export const hybridStore = {
       Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
     }
   },
+
+  // --- ACCOUNT HYDRATION & EXPORT ---
+  hydrateJournalEntries(entries: JournalEntry[]): void {
+    if (!Array.isArray(entries)) return;
+    setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, entries);
+  },
+
+  hydrateWritingSessions(sessions: WritingSession[]): void {
+    if (!Array.isArray(sessions)) return;
+    setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+  },
+
+  hydratePlans(plans: LittlePlanTask[]): void {
+    if (!Array.isArray(plans)) return;
+    setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+  },
+
+  hydrateVocabulary(vocabulary: VocabularyEntry[]): void {
+    if (!Array.isArray(vocabulary)) return;
+    setStorage(STORAGE_KEYS.VOCABULARY, vocabulary);
+  },
+
+  hydrateLibrary(books: BookItem[]): void {
+    if (!Array.isArray(books)) return;
+    setStorage(STORAGE_KEYS.LIBRARY_BOOKS, books);
+  },
+
+  exportAllLocalData(): {
+    journal: JournalEntry[];
+    documents: WritingSession[];
+    plans: LittlePlanTask[];
+    vocabulary: VocabularyEntry[];
+    library: BookItem[];
+    preferences: UserPreferences;
+  } {
+    return {
+      journal: this.getJournalEntries(),
+      documents: this.getWritingSessions(),
+      plans: this.getPlans(),
+      vocabulary: this.getVocabulary(),
+      library: this.getLibraryBooks(),
+      preferences: this.getPreferences(),
+    };
+  },
 };
+

@@ -468,4 +468,28 @@ export interface JournalSearchResult {
   matchedField: "title" | "body" | "tags" | "all";
 }
 
+// --- AUTHENTICATION & USER SPACE TYPES ---
+export interface UserAccount {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  bio?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthSession {
+  id: string;
+  userId: string;
+  user: UserAccount;
+  expiresAt: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user?: UserAccount;
+  error?: string;
+}
+
 

@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { UserPreferences, ThemeType } from "@/types";
 import { hybridStore } from "@/lib/store/hybridStore";
+import { useAuth } from "@/lib/auth/AuthContext";
 import {
   Settings as SettingsIcon,
   Palette,
@@ -17,6 +19,11 @@ import {
   Sun,
   Moon,
   Monitor,
+  User,
+  RefreshCw,
+  LogOut,
+  ArrowRight,
+  UploadCloud,
 } from "lucide-react";
 
 interface ThemeOption {
@@ -108,10 +115,11 @@ const THEMES: ThemeOption[] = [
 ];
 
 export function SettingsView() {
+  const { user, logout, syncWithCloud, syncStatus } = useAuth();
   const [preferences, setPreferences] = useState<UserPreferences>(hybridStore.getPreferences());
   const [currentTheme, setCurrentTheme] = useState<ThemeType>("linen");
   const [colorScheme, setColorScheme] = useState<"system" | "light" | "dark">("light");
-  const [activeTab, setActiveTab] = useState<"appearance" | "atmosphere" | "system">("appearance");
+  const [activeTab, setActiveTab] = useState<"appearance" | "atmosphere" | "system" | "account">("appearance");
   const [isSaved, setIsSaved] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
 
@@ -213,6 +221,18 @@ export function SettingsView() {
         >
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>System & Data</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("account")}
+          className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+            activeTab === "account"
+              ? "bg-[var(--accent-sage)] text-[#FFFCF5] font-semibold"
+              : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)]"
+          }`}
+        >
+          <User className="w-3.5 h-3.5" />
+          <span>Account & Identity</span>
         </button>
       </div>
 
@@ -503,6 +523,97 @@ export function SettingsView() {
               {resetConfirm ? "Click again to permanently erase" : "Erase All Sanctuary Data"}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* TAB 4: ACCOUNT & IDENTITY */}
+      {activeTab === "account" && (
+        <div className="space-y-6 animate-fade-in">
+          {user ? (
+            <div className="p-6 rounded-2xl border border-[var(--border-warm)] bg-[var(--bg-paper)] shadow-xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-warm)]/80">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-full bg-[var(--bg-botanical-light)] text-[var(--accent-sage)] font-literary text-xl font-bold flex items-center justify-center border border-[var(--accent-sage)]/25">
+                    {user.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 className="font-literary text-lg font-semibold text-[var(--text-main)]">
+                      {user.displayName}
+                    </h3>
+                    <p className="text-xs text-[var(--text-muted)]">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => syncWithCloud()}
+                    disabled={syncStatus === "syncing"}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border-warm)] text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)]"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === "syncing" ? "animate-spin" : ""}`} />
+                    <span>{syncStatus === "syncing" ? "Syncing..." : "Sync Cloud"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--accent-burgundy)]/10 text-[var(--accent-burgundy)] text-xs font-medium hover:bg-[var(--accent-burgundy)]/20"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-[var(--bg-main)] border border-[var(--border-warm)]">
+                <div>
+                  <div className="text-xs font-semibold text-[var(--text-main)]">
+                    Sanctuary Cloud Isolation
+                  </div>
+                  <div className="text-[11px] text-[var(--text-muted)] mt-0.5">
+                    Your journal, documents, plans, and vocabulary are securely tied to your user ID.
+                  </div>
+                </div>
+                <Link
+                  href="/profile"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--accent-sage)] text-[#FFFCF5] text-xs font-semibold hover:opacity-95 shadow-xs shrink-0"
+                >
+                  <span>Open Full Profile & Vault</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="p-8 rounded-2xl border border-[var(--border-warm)] bg-[var(--bg-paper)] shadow-xs text-center space-y-5">
+              <div className="w-14 h-14 mx-auto rounded-full bg-[var(--bg-sage-surface)] text-[var(--accent-sage)] flex items-center justify-center">
+                <User className="w-7 h-7" />
+              </div>
+              <div className="max-w-md mx-auto">
+                <h3 className="font-literary text-xl font-semibold text-[var(--text-main)]">
+                  Personalize & Protect Your Sanctuary
+                </h3>
+                <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">
+                  Sign in or create an account to activate authenticated cross-device synchronization, automated cloud backups, and private data isolation.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent-sage)] text-[#FFFCF5] text-xs font-semibold hover:opacity-95 shadow-xs"
+                >
+                  <span>Sign In to Inkling</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-[var(--border-warm)] text-xs font-medium text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)]"
+                >
+                  Create New Account
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

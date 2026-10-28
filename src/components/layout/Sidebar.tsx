@@ -22,9 +22,11 @@ import {
   Palette,
   Check,
   ListTodo,
+  User,
 } from "lucide-react";
 import { ThemeType } from "@/types";
 import { hybridStore } from "@/lib/store/hybridStore";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 interface SidebarProps {
   className?: string;
@@ -41,6 +43,7 @@ const THEME_SWATCHES: Array<{ id: ThemeType; name: string; bg: string; dot: stri
 
 function SidebarContent({ className = "" }: SidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<ThemeType>("linen");
   const [themePopoverOpen, setThemePopoverOpen] = useState(false);
@@ -203,6 +206,53 @@ function SidebarContent({ className = "" }: SidebarProps) {
           </div>
         )}
 
+        {/* User Account / Sign In row */}
+        <div className="mb-2">
+          {user ? (
+            <Link
+              href="/profile"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                pathname === "/profile"
+                  ? "bg-[var(--accent-sage)] text-[#FFFCF5] font-semibold"
+                  : "text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)]"
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                    pathname === "/profile"
+                      ? "bg-white/20 text-[#FFFCF5]"
+                      : "bg-[var(--bg-botanical-light)] text-[var(--accent-sage)]"
+                  }`}
+                >
+                  {user.displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="truncate">
+                  <div className="text-[11px] font-semibold truncate leading-tight">{user.displayName}</div>
+                </div>
+              </div>
+              <ChevronRight className="w-3 h-3 opacity-50 shrink-0" />
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                pathname === "/login"
+                  ? "bg-[var(--accent-sage)] text-[#FFFCF5] font-semibold"
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-sage-surface)] hover:text-[var(--text-main)]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <User className="w-3.5 h-3.5 text-[var(--accent-sage)]" />
+                <span className="text-[11px]">Sign In</span>
+              </div>
+              <ChevronRight className="w-3 h-3 opacity-50" />
+            </Link>
+          )}
+        </div>
+
         {/* Footer actions row */}
         <div className="flex items-center justify-between gap-1 text-xs">
           {/* Settings link */}
@@ -251,6 +301,22 @@ function SidebarContent({ className = "" }: SidebarProps) {
       <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[var(--bg-paper)] border-b border-[var(--border-warm)] transition-colors">
         <Logo size="sm" href="/" />
         <div className="flex items-center gap-2">
+          {user ? (
+            <Link
+              href="/profile"
+              className="w-7 h-7 rounded-full bg-[var(--bg-botanical-light)] text-[var(--accent-sage)] border border-[var(--accent-sage)]/30 flex items-center justify-center text-xs font-bold"
+              aria-label="Account Profile"
+            >
+              {user.displayName.charAt(0).toUpperCase()}
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-[11px] font-medium text-[var(--accent-sage)] px-2 py-1 rounded-md border border-[var(--border-warm)] hover:bg-[var(--bg-sage-surface)]"
+            >
+              Sign In
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => setThemePopoverOpen(!themePopoverOpen)}
