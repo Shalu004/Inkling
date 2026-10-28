@@ -1,42 +1,11 @@
 @import "tailwindcss";
 
-@theme {
-  --font-serif: var(--font-lora), Georgia, Cambria, serif;
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-hand: var(--font-caveat), cursive;
-
-  /* Literary Sanctuary Color Tokens */
-  --color-bg-sanctuary: #F5F0E6;
-  --color-paper: #FFFCF5;
-  --color-sage-surface: #E5E6D9;
-  --color-botanical-light: #D9DFCF;
-  --color-primary-sage: #65745A;
-  --color-deep-olive: #485641;
-  --color-burgundy: #754650;
-  --color-text-primary: #332F29;
-  --color-text-secondary: #777267;
-  --color-warm-border: #DED7C9;
-
-  /* Legacy & Semantic Mappings for Sanctuary Harmony */
-  --color-parchment: #F5F0E6;
-  --color-ink-primary: #332F29;
-  --color-ink-secondary: #777267;
-  --color-creative-ink: #65745A;
-  --color-creative-wash: #E5E6D9;
-  --color-vocab-ink: #485641;
-  --color-vocab-wash: #E5E6D9;
-  --color-spark-ink: #754650;
-  --color-spark-wash: #F5F0E6;
-  --color-coach-ink: #65745A;
-  --color-coach-wash: #D9DFCF;
-  --color-reading-ink: #485641;
-  --color-reading-wash: #E5E6D9;
-}
-
-:root {
+:root,
+:root[data-theme="linen"] {
   --bg-main: #F5F0E6;
   --bg-paper: #FFFCF5;
   --bg-sage-surface: #E5E6D9;
+  --bg-botanical-light: #D9DFCF;
   --border-warm: #DED7C9;
   --text-main: #332F29;
   --text-muted: #777267;
@@ -45,20 +14,119 @@
   --accent-burgundy: #754650;
 }
 
+:root[data-theme="sage"] {
+  --bg-main: #E7ECE3;
+  --bg-paper: #F5F8F3;
+  --bg-sage-surface: #D8E2D3;
+  --bg-botanical-light: #C7D6C1;
+  --border-warm: #CAD5C4;
+  --text-main: #2A3628;
+  --text-muted: #5B6D58;
+  --accent-sage: #4E6548;
+  --accent-olive: #354732;
+  --accent-burgundy: #6D434B;
+}
+
+:root[data-theme="midnight"] {
+  --bg-main: #181A18;
+  --bg-paper: #222521;
+  --bg-sage-surface: #2D322B;
+  --bg-botanical-light: #394237;
+  --border-warm: #373E36;
+  --text-main: #ECEFE9;
+  --text-muted: #9DA89A;
+  --accent-sage: #8DA682;
+  --accent-olive: #ADC3A4;
+  --accent-burgundy: #B57D89;
+}
+
+:root[data-theme="sepia"] {
+  --bg-main: #EFE5D3;
+  --bg-paper: #F9F3E8;
+  --bg-sage-surface: #E2D3BC;
+  --bg-botanical-light: #D5C2A7;
+  --border-warm: #DACAB0;
+  --text-main: #36291C;
+  --text-muted: #756350;
+  --accent-sage: #75573A;
+  --accent-olive: #543E26;
+  --accent-burgundy: #783B41;
+}
+
+:root[data-theme="rose"] {
+  --bg-main: #F4EAEB;
+  --bg-paper: #FDF7F7;
+  --bg-sage-surface: #EBDBDC;
+  --bg-botanical-light: #E0C9CC;
+  --border-warm: #DFC9CD;
+  --text-main: #38242A;
+  --text-muted: #795F66;
+  --accent-sage: #754650;
+  --accent-olive: #542F37;
+  --accent-burgundy: #8C4757;
+}
+
+:root[data-theme="pure_light"] {
+  --bg-main: #F7F7F8;
+  --bg-paper: #FFFFFF;
+  --bg-sage-surface: #ECEEF0;
+  --bg-botanical-light: #DFE3E6;
+  --border-warm: #DFE2E5;
+  --text-main: #1C2024;
+  --text-muted: #66707A;
+  --accent-sage: #4E634C;
+  --accent-olive: #344633;
+  --accent-burgundy: #75444E;
+}
+
+@theme {
+  --font-serif: var(--font-lora), Georgia, Cambria, serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-hand: var(--font-caveat), cursive;
+
+  /* Dynamic Theme Tokens */
+  --color-bg-sanctuary: var(--bg-main);
+  --color-paper: var(--bg-paper);
+  --color-sage-surface: var(--bg-sage-surface);
+  --color-botanical-light: var(--bg-botanical-light);
+  --color-primary-sage: var(--accent-sage);
+  --color-deep-olive: var(--accent-olive);
+  --color-burgundy: var(--accent-burgundy);
+  --color-text-primary: var(--text-main);
+  --color-text-secondary: var(--text-muted);
+  --color-warm-border: var(--border-warm);
+
+  /* Semantic Aliases */
+  --color-parchment: var(--bg-main);
+  --color-ink-primary: var(--text-main);
+  --color-ink-secondary: var(--text-muted);
+  --color-creative-ink: var(--accent-sage);
+  --color-creative-wash: var(--bg-sage-surface);
+  --color-vocab-ink: var(--accent-olive);
+  --color-vocab-wash: var(--bg-sage-surface);
+  --color-spark-ink: var(--accent-burgundy);
+  --color-spark-wash: var(--bg-main);
+  --color-coach-ink: var(--accent-sage);
+  --color-coach-wash: var(--bg-botanical-light);
+  --color-reading-ink: var(--accent-olive);
+  --color-reading-wash: var(--bg-sage-surface);
+}
+
 * {
   box-sizing: border-box;
 }
 
 html,
 body {
-  background-color: #F5F0E6;
-  color: #332F29;
+  background-color: var(--bg-main);
+  color: var(--text-main);
   font-family: var(--font-sans);
   min-height: 100vh;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Typography Classes */
@@ -74,36 +142,36 @@ body {
   font-family: var(--font-hand);
 }
 
-/* Cozy Paper & Bookshelf Styling */
+/* Sanctuary Paper Card */
 .sanctuary-card {
-  background-color: #FFFCF5;
-  border: 1px solid #DED7C9;
+  background-color: var(--bg-paper);
+  border: 1px solid var(--border-warm);
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(51, 47, 41, 0.04), 0 4px 14px rgba(51, 47, 41, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(0, 0, 0, 0.03);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .sanctuary-card:hover {
-  border-color: #CFC5B4;
-  box-shadow: 0 4px 12px rgba(51, 47, 41, 0.06), 0 12px 28px rgba(51, 47, 41, 0.04);
+  border-color: var(--accent-sage);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 12px 28px rgba(0, 0, 0, 0.04);
 }
 
 /* Book Cover Styling */
 .book-cover {
   position: relative;
   border-radius: 4px 8px 8px 4px;
-  box-shadow: -4px 0 0 rgba(0, 0, 0, 0.15) inset, 2px 4px 12px rgba(51, 47, 41, 0.18);
+  box-shadow: -4px 0 0 rgba(0, 0, 0, 0.25) inset, 2px 4px 12px rgba(0, 0, 0, 0.22);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .book-cover:hover {
   transform: translateY(-4px) rotate(-0.5deg);
-  box-shadow: -4px 0 0 rgba(0, 0, 0, 0.2) inset, 4px 10px 20px rgba(51, 47, 41, 0.22);
+  box-shadow: -4px 0 0 rgba(0, 0, 0, 0.3) inset, 4px 10px 20px rgba(0, 0, 0, 0.28);
 }
 
 /* Vintage Paper Notebook Spine Effect */
 .notebook-spine {
-  border-left: 3px solid #65745A;
+  border-left: 3px solid var(--accent-sage);
 }
 
 /* Ribbon Bookmark */
@@ -113,7 +181,7 @@ body {
   right: 14px;
   width: 14px;
   height: 28px;
-  background-color: #754650;
+  background-color: var(--accent-burgundy);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
   z-index: 10;
 }
@@ -124,25 +192,25 @@ body {
   height: 7px;
 }
 ::-webkit-scrollbar-track {
-  background: #F5F0E6;
+  background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #DED7C9;
+  background: var(--border-warm);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #CFC5B4;
+  background: var(--accent-sage);
 }
 
 /* Selection highlight */
 ::selection {
-  background-color: #D9DFCF;
-  color: #332F29;
+  background-color: var(--bg-botanical-light);
+  color: var(--text-main);
 }
 
 /* Focus outline for accessibility */
 *:focus-visible {
-  outline: 2px solid #65745A;
+  outline: 2px solid var(--accent-sage);
   outline-offset: 2px;
 }
 

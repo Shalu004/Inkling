@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
@@ -19,15 +19,40 @@ import {
   Menu,
   X,
   ChevronRight,
+  Palette,
+  Check,
 } from "lucide-react";
+import { ThemeType } from "@/types";
+import { hybridStore } from "@/lib/store/hybridStore";
 
 interface SidebarProps {
   className?: string;
 }
 
+const THEME_SWATCHES: Array<{ id: ThemeType; name: string; bg: string; dot: string }> = [
+  { id: "linen", name: "Linen", bg: "#F5F0E6", dot: "#65745A" },
+  { id: "sage", name: "Sage", bg: "#E7ECE3", dot: "#4E6548" },
+  { id: "midnight", name: "Midnight", bg: "#181A18", dot: "#8DA682" },
+  { id: "sepia", name: "Sepia", bg: "#EFE5D3", dot: "#75573A" },
+  { id: "rose", name: "Rose", bg: "#F4EAEB", dot: "#754650" },
+  { id: "pure_light", name: "Pure Light", bg: "#F7F7F8", dot: "#4E634C" },
+];
+
 function SidebarContent({ className = "" }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemeType>("linen");
+  const [themePopoverOpen, setThemePopoverOpen] = useState(false);
+
+  useEffect(() => {
+    setCurrentTheme(hybridStore.getTheme());
+  }, []);
+
+  const handleSelectTheme = (themeId: ThemeType) => {
+    setCurrentTheme(themeId);
+    hybridStore.setTheme(themeId);
+    setThemePopoverOpen(false);
+  };
 
   const mainNavItems = [
     { href: "/", label: "Home", icon: Home },
@@ -51,16 +76,16 @@ function SidebarContent({ className = "" }: SidebarProps) {
   };
 
   const navContent = (
-    <div className="flex flex-col h-full justify-between p-5 bg-[#FFFCF5] border-r border-[#DED7C9]">
+    <div className="flex flex-col h-full justify-between p-5 bg-[var(--bg-paper)] border-r border-[var(--border-warm)] transition-colors duration-200">
       {/* Brand Header */}
       <div className="space-y-6">
-        <div className="pt-1 pb-4 border-b border-[#DED7C9]/70">
+        <div className="pt-1 pb-4 border-b border-[var(--border-warm)]/70">
           <Logo size="md" href="/" />
         </div>
 
         {/* Primary Navigation */}
         <div className="space-y-1">
-          <div className="px-3 pb-2 text-[10px] font-semibold tracking-wider text-[#777267] uppercase">
+          <div className="px-3 pb-2 text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
             Sanctuary
           </div>
 
@@ -75,21 +100,21 @@ function SidebarContent({ className = "" }: SidebarProps) {
                   onClick={() => setMobileOpen(false)}
                   className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     active
-                      ? "bg-[#65745A] text-[#FFFCF5] shadow-xs font-semibold"
-                      : "text-[#332F29] hover:bg-[#E5E6D9]/60 hover:text-[#485641]"
+                      ? "bg-[var(--accent-sage)] text-[#FFFCF5] shadow-xs font-semibold"
+                      : "text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)] hover:text-[var(--accent-olive)]"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon
                       className={`w-4 h-4 transition-colors ${
-                        active ? "text-[#FFFCF5]" : "text-[#777267] group-hover:text-[#485641]"
+                        active ? "text-[#FFFCF5]" : "text-[var(--text-muted)] group-hover:text-[var(--accent-olive)]"
                       }`}
                     />
                     <span>{item.label}</span>
                   </div>
 
                   {item.badge && !active && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E5E6D9] text-[#485641] font-semibold">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--bg-sage-surface)] text-[var(--accent-olive)] font-semibold">
                       {item.badge}
                     </span>
                   )}
@@ -101,7 +126,7 @@ function SidebarContent({ className = "" }: SidebarProps) {
 
         {/* Secondary Navigation */}
         <div className="space-y-1 pt-2">
-          <div className="px-3 pb-1.5 text-[10px] font-semibold tracking-wider text-[#777267] uppercase">
+          <div className="px-3 pb-1.5 text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
             Reflections
           </div>
           <nav className="space-y-1">
@@ -115,13 +140,13 @@ function SidebarContent({ className = "" }: SidebarProps) {
                   onClick={() => setMobileOpen(false)}
                   className={`group flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     active
-                      ? "bg-[#65745A] text-[#FFFCF5] shadow-xs font-semibold"
-                      : "text-[#777267] hover:bg-[#E5E6D9]/60 hover:text-[#332F29]"
+                      ? "bg-[var(--accent-sage)] text-[#FFFCF5] shadow-xs font-semibold"
+                      : "text-[var(--text-muted)] hover:bg-[var(--bg-sage-surface)] hover:text-[var(--text-main)]"
                   }`}
                 >
                   <Icon
                     className={`w-4 h-4 transition-colors ${
-                      active ? "text-[#FFFCF5]" : "text-[#777267] group-hover:text-[#332F29]"
+                      active ? "text-[#FFFCF5]" : "text-[var(--text-muted)] group-hover:text-[var(--text-main)]"
                     }`}
                   />
                   <span>{item.label}</span>
@@ -132,34 +157,92 @@ function SidebarContent({ className = "" }: SidebarProps) {
         </div>
       </div>
 
-      {/* Footer Area: Quote & Settings */}
-      <div className="pt-6 border-t border-[#DED7C9]/80 space-y-4">
+      {/* Footer Area: Theme Shortcut, Quote & Settings */}
+      <div className="pt-4 border-t border-[var(--border-warm)]/80 space-y-3 relative">
         {/* Subtle literary motto */}
-        <div className="px-3 py-2.5 rounded-lg bg-[#F5F0E6] border border-[#DED7C9]/60 text-center">
-          <p className="font-handwritten text-sm text-[#485641] italic">
+        <div className="px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-warm)]/60 text-center">
+          <p className="font-handwritten text-sm text-[var(--accent-olive)] italic">
             "Read deeply. Write honestly."
           </p>
-          <span className="text-[9px] text-[#777267] uppercase tracking-wider block mt-0.5">
+          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mt-0.5">
             Inkling Sanctuary
           </span>
         </div>
 
-        {/* Settings link */}
-        <Link
-          href="/settings"
-          onClick={() => setMobileOpen(false)}
-          className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-            pathname === "/settings"
-              ? "bg-[#65745A] text-[#FFFCF5] font-semibold"
-              : "text-[#777267] hover:bg-[#E5E6D9]/60 hover:text-[#332F29]"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <Settings className="w-4 h-4" />
-            <span>Settings & Sanctuary</span>
+        {/* Theme Shortcut Popover */}
+        {themePopoverOpen && (
+          <div className="absolute bottom-16 left-2 right-2 p-3 rounded-xl bg-[var(--bg-paper)] border border-[var(--border-warm)] shadow-xl z-50 space-y-2 animate-in fade-in duration-150">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-[var(--text-main)]">
+              <span>Sanctuary Theme</span>
+              <button
+                type="button"
+                onClick={() => setThemePopoverOpen(false)}
+                className="text-[var(--text-muted)] hover:text-[var(--text-main)]"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-1.5">
+              {THEME_SWATCHES.map((sw) => (
+                <button
+                  key={sw.id}
+                  type="button"
+                  onClick={() => handleSelectTheme(sw.id)}
+                  title={sw.name}
+                  className={`p-1.5 rounded-lg border text-center transition-all flex flex-col items-center gap-1 ${
+                    currentTheme === sw.id
+                      ? "border-[var(--accent-sage)] bg-[var(--bg-botanical-light)] ring-1 ring-[var(--accent-sage)]"
+                      : "border-[var(--border-warm)] hover:bg-[var(--bg-sage-surface)]"
+                  }`}
+                  style={{ backgroundColor: sw.bg }}
+                >
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-black/20"
+                    style={{ backgroundColor: sw.dot }}
+                  />
+                  <span className="text-[9px] font-medium text-[var(--text-main)] truncate max-w-full">
+                    {sw.name}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-          <ChevronRight className="w-3.5 h-3.5 opacity-50" />
-        </Link>
+        )}
+
+        {/* Footer actions row */}
+        <div className="flex items-center justify-between gap-1 text-xs">
+          {/* Settings link */}
+          <Link
+            href="/settings"
+            onClick={() => setMobileOpen(false)}
+            className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+              pathname === "/settings"
+                ? "bg-[var(--accent-sage)] text-[#FFFCF5] font-semibold"
+                : "text-[var(--text-muted)] hover:bg-[var(--bg-sage-surface)] hover:text-[var(--text-main)]"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Settings className="w-3.5 h-3.5" />
+              <span>Settings</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 opacity-50" />
+          </Link>
+
+          {/* Discreet Theme Palette Button */}
+          <button
+            type="button"
+            onClick={() => setThemePopoverOpen(!themePopoverOpen)}
+            title={`Current theme: ${currentTheme}. Click to switch theme`}
+            className={`p-2 rounded-lg border transition-all ${
+              themePopoverOpen
+                ? "bg-[var(--accent-sage)] text-[#FFFCF5] border-[var(--accent-sage)]"
+                : "border-[var(--border-warm)] bg-[var(--bg-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)]"
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -172,22 +255,32 @@ function SidebarContent({ className = "" }: SidebarProps) {
       </aside>
 
       {/* Mobile Top Header */}
-      <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#FFFCF5] border-b border-[#DED7C9]">
+      <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[var(--bg-paper)] border-b border-[var(--border-warm)] transition-colors">
         <Logo size="sm" href="/" />
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-1.5 rounded-md text-[#332F29] hover:bg-[#E5E6D9] transition-colors"
-          aria-label="Toggle navigation menu"
-        >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setThemePopoverOpen(!themePopoverOpen)}
+            className="p-1.5 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-warm)]"
+            aria-label="Toggle theme"
+          >
+            <Palette className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-1.5 rounded-md text-[var(--text-main)] hover:bg-[var(--bg-sage-surface)] transition-colors"
+            aria-label="Toggle navigation menu"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
           <div
-            className="fixed inset-0 bg-[#332F29]/40 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
           <div className="relative w-72 max-w-xs h-full z-10 animate-in slide-in-from-left duration-200">
@@ -203,7 +296,7 @@ export function Sidebar(props: SidebarProps) {
   return (
     <Suspense
       fallback={
-        <aside className="hidden md:block w-64 shrink-0 h-screen sticky top-0 bg-[#FFFCF5] border-r border-[#DED7C9]" />
+        <aside className="hidden md:block w-64 shrink-0 h-screen sticky top-0 bg-[var(--bg-paper)] border-r border-[var(--border-warm)]" />
       }
     >
       <SidebarContent {...props} />

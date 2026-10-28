@@ -17,10 +17,14 @@ import {
   Trash2,
   X,
   Edit3,
+  Compass,
+  Globe,
 } from "lucide-react";
+import { BookCatalogSearch } from "./BookCatalogSearch";
 
 export function LibraryView() {
   const [books, setBooks] = useState<BookItem[]>([]);
+  const [viewMode, setViewMode] = useState<"shelf" | "catalog_search">("shelf");
   const [selectedShelf, setSelectedShelf] = useState<
     "all" | "currently_reading" | "want_to_read" | "finished" | "favorite"
   >("all");
@@ -130,30 +134,63 @@ export function LibraryView() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10 space-y-10">
       {/* Header */}
-      <div className="border-b border-[#DED7C9] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-[var(--border-warm)] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#65745A] flex items-center gap-1.5 mb-1">
-            <LibraryIcon className="w-4 h-4" /> Personal Bookshelf
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--accent-sage)] flex items-center gap-1.5 mb-1">
+            <LibraryIcon className="w-4 h-4" /> Personal Bookshelf & Discovery
           </span>
-          <h1 className="font-literary text-3xl sm:text-4xl font-semibold text-[#332F29]">
+          <h1 className="font-literary text-3xl sm:text-4xl font-semibold text-[var(--text-main)]">
             My Library
           </h1>
-          <p className="text-xs text-[#777267] mt-1">
-            A sanctuary for the books you have loved, those you are reading, and the ones waiting on your shelf.
+          <p className="text-xs text-[var(--text-muted)] mt-1">
+            A sanctuary for the books you have loved, those you are reading, and discoverable volumes across world archives.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#65745A] text-[#FFFCF5] text-xs font-semibold hover:bg-[#485641] transition-all shadow-xs self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--accent-sage)] text-[#FFFCF5] text-xs font-semibold hover:bg-[var(--accent-olive)] transition-all shadow-xs self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Catalog a Book</span>
         </button>
       </div>
 
-      {/* Filter Tabs & Search */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Mode Switcher: My Bookshelf vs World Book Catalogs */}
+      <div className="flex items-center gap-2 p-1 rounded-xl bg-[var(--bg-paper)] border border-[var(--border-warm)] max-w-fit text-xs">
+        <button
+          type="button"
+          onClick={() => setViewMode("shelf")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            viewMode === "shelf"
+              ? "bg-[var(--accent-sage)] text-[#FFFCF5] shadow-xs font-semibold"
+              : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
+          }`}
+        >
+          <LibraryIcon className="w-3.5 h-3.5" />
+          <span>My Bookshelf ({books.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode("catalog_search")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
+            viewMode === "catalog_search"
+              ? "bg-[var(--accent-sage)] text-[#FFFCF5] shadow-xs font-semibold"
+              : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5" />
+          <span>Search World Catalogs (Open Library • Gutenberg • Google)</span>
+        </button>
+      </div>
+
+      {viewMode === "catalog_search" ? (
+        <BookCatalogSearch onBookAdded={loadBooks} />
+      ) : (
+        <>
+          {/* Filter Tabs & Search */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         {/* Shelf Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto pb-1 max-w-full">
           {shelfTabs.map((tab) => (
@@ -253,6 +290,8 @@ export function LibraryView() {
           ))}
         </div>
       )}
+    </>
+  )}
 
       {/* BOOK DETAIL MODAL */}
       {activeBook && (

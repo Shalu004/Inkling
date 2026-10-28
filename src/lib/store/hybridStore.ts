@@ -10,6 +10,10 @@ import {
   IssueCategory,
   JournalEntry,
   BookItem,
+  ThemeType,
+  ReaderPreferences,
+  JournalSearchFilters,
+  JournalSearchResult,
 } from "@/types";
 import { MISTAKE_RULES_CATALOG, INITIAL_JOURNAL_ENTRIES, CURATED_BOOKS } from "@/lib/curated/data";
 
@@ -23,6 +27,18 @@ const STORAGE_KEYS = {
   PREFERENCES: "inkling_user_preferences_v1",
   JOURNAL_ENTRIES: "inkling_journal_entries_v2",
   LIBRARY_BOOKS: "inkling_library_books_v2",
+  READING_POSITIONS: "inkling_reading_positions_v1",
+  SAVED_PASSAGES: "inkling_saved_passages_v1",
+};
+
+export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
+  fontSize: 18,
+  fontFamily: "serif",
+  lineHeight: "normal",
+  marginWidth: "normal",
+  theme: "linen",
+  mode: "scroll",
+  focusMode: false,
 };
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -34,6 +50,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   aiFeedbackTone: "supportive_rigorous",
   focusModeDefault: false,
   emailReminders: false,
+  theme: "linen",
+  colorScheme: "light",
+  readerPreferences: DEFAULT_READER_PREFERENCES,
 };
 
 let memoryStorage: Record<string, string> = {};
@@ -74,6 +93,30 @@ export const hybridStore = {
     const current = this.getPreferences();
     const updated = { ...current, ...prefs };
     setStorage(STORAGE_KEYS.PREFERENCES, updated);
+    return updated;
+  },
+
+  getTheme(): ThemeType {
+    const prefs = this.getPreferences();
+    return prefs.theme || "linen";
+  },
+
+  setTheme(theme: ThemeType): void {
+    this.savePreferences({ theme });
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+  },
+
+  getReaderPreferences(): ReaderPreferences {
+    const prefs = this.getPreferences();
+    return prefs.readerPreferences || DEFAULT_READER_PREFERENCES;
+  },
+
+  saveReaderPreferences(prefs: Partial<ReaderPreferences>): ReaderPreferences {
+    const current = this.getReaderPreferences();
+    const updated = { ...current, ...prefs };
+    this.savePreferences({ readerPreferences: updated });
     return updated;
   },
 
@@ -556,16 +599,17 @@ export const hybridStore = {
     return list.find((e) => e.id === id) || null;
   },
 
-  saveJournalEntry(entry: Partial<JournalEntry> & { id: string }): JournalEntry {
+  saveJournalEntry(entry: Partial<JournalEntry> & { id?: string; content?: string }): JournalEntry {
     const list = this.getJournalEntries();
-    const existingIndex = list.findIndex((e) => e.id === entry.id);
+    const id = entry.id || "journal-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
+    const existingIndex = list.findIndex((e) => e.id === id);
     const now = new Date().toISOString();
     const today = now.split("T")[0];
 
     const fullEntry: JournalEntry = {
-      id: entry.id,
+      id,
       title: entry.title || "Untitled Entry",
-      body: entry.body || "",
+      body: entry.body || entry.content || "",
       date: entry.date || today,
       time: entry.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       mood: entry.mood,
@@ -691,6 +735,206 @@ export const hybridStore = {
   deleteBook(id: string): void {
     const list = this.getLibraryBooks().filter((b) => b.id !== id);
     setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+  },
+
+  // --- READING POSITION RESTORATION ---
+  getReadingPositions(): Record<string, { scrollPercent: number; scrollOffset?: number; progressPercent?: number; page?: number; lastReadAt: string }> {
+    return getStorage<Record<string, { scrollPercent: number; scrollOffset?: number; progressPercent?: number; page?: number; lastReadAt: string }>>(
+      STORAGE_KEYS.READING_POSITIONS,
+      {}
+    );
+  },
+
+  saveReadingPosition(
+    resourceId: string,
+    position: { scrollPercent?: number; scrollOffset?: number; progressPercent?: number; page?: number } | number,
+    maybeProgress?: number
+  ): void {
+    const map = this.getReadingPositions();
+    let scrollPercent = 0;
+    let page: number | undefined;
+    let scrollOffset: number | undefined;
+    let progressPercent: number | undefined;
+
+    if (typeof position === "number") {
+      scrollOffset = position;
+      progressPercent = maybeProgress ?? 0;
+      scrollPercent = Math.round((maybeProgress ?? 0) * 100);
+    } else {
+      scrollPercent = position.scrollPercent ?? Math.round((position.progressPercent ?? 0) * 100);
+      scrollOffset = position.scrollOffset;
+      progressPercent = position.progressPercent ?? (position.scrollPercent !== undefined ? position.scrollPercent / 100 : undefined);
+      page = position.page;
+    }
+
+    map[resourceId] = {
+      scrollPercent,
+      scrollOffset,
+      progressPercent,
+      page,
+      lastReadAt: new Date().toISOString(),
+    };
+    setStorage(STORAGE_KEYS.READING_POSITIONS, map);
+  },
+
+  // --- SAVED PASSAGES & QUOTES ---
+  getSavedPassages(): Array<{ id: string; resourceId: string; resourceTitle: string; passage: string; note?: string; savedAt: string; author?: string; location?: string }> {
+    return getStorage<Array<{ id: string; resourceId: string; resourceTitle: string; passage: string; note?: string; savedAt: string; author?: string; location?: string }>>(
+      STORAGE_KEYS.SAVED_PASSAGES,
+      []
+    );
+  },
+
+  savePassage(passage: {
+    resourceId?: string;
+    resourceTitle?: string;
+    passage?: string;
+    text?: string;
+    bookId?: string;
+    bookTitle?: string;
+    author?: string;
+    location?: string;
+    notes?: string;
+    note?: string;
+  }): { id: string; resourceId: string; resourceTitle: string; passage: string; note?: string; savedAt: string; author?: string; location?: string } {
+    const list = this.getSavedPassages();
+    const passageText = passage.passage || passage.text || "";
+    const resId = passage.resourceId || passage.bookId || "resource";
+    const resTitle = passage.resourceTitle || passage.bookTitle || "Untitled";
+    const noteText = passage.note || passage.notes;
+
+    const item = {
+      id: "passage-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+      resourceId: resId,
+      resourceTitle: resTitle,
+      passage: passageText,
+      note: noteText,
+      author: passage.author,
+      location: passage.location,
+      savedAt: new Date().toISOString(),
+    };
+    list.unshift(item);
+    setStorage(STORAGE_KEYS.SAVED_PASSAGES, list);
+    return item;
+  },
+
+  removeSavedPassage(id: string): void {
+    const list = this.getSavedPassages().filter((p) => p.id !== id);
+    setStorage(STORAGE_KEYS.SAVED_PASSAGES, list);
+  },
+
+  // --- UNIVERSAL JOURNAL SEARCH ---
+  searchJournalEntries(filters: Partial<JournalSearchFilters>): JournalSearchResult[] {
+    const entries = this.getJournalEntries();
+    const q = (filters.query || "").trim().toLowerCase();
+    const scope = filters.scope || "all";
+    const moodFilter = filters.mood && filters.mood !== "all" ? filters.mood.toLowerCase() : null;
+    const tagFilter = filters.tag && filters.tag !== "all" ? filters.tag.toLowerCase() : null;
+    const isFavOnly = Boolean(filters.isFavoriteOnly || (filters as { isFavorite?: boolean }).isFavorite);
+    const startDate = filters.startDate || null;
+    const endDate = filters.endDate || null;
+    const yearFilter = filters.year || null;
+    const monthFilter = filters.month || null;
+
+    const results: JournalSearchResult[] = [];
+
+    for (const entry of entries) {
+      // 1. Favorite filter
+      if (isFavOnly && !entry.isFavorite) continue;
+
+      // 2. Mood filter
+      if (moodFilter && (!entry.mood || entry.mood.toLowerCase() !== moodFilter)) continue;
+
+      // 3. Tag filter
+      if (tagFilter) {
+        const hasTag = entry.tags.some((t) => t.toLowerCase() === tagFilter);
+        if (!hasTag) continue;
+      }
+
+      // 4. Date filters
+      const entryDate = entry.date;
+      if (startDate && entryDate < startDate) continue;
+      if (endDate && entryDate > endDate) continue;
+      if (yearFilter && !entryDate.startsWith(yearFilter)) continue;
+      if (monthFilter) {
+        const parts = entryDate.split("-");
+        if (parts[1] !== monthFilter) continue;
+      }
+
+      // 5. Query matching
+      let score = 0;
+      const matchedSnippets: string[] = [];
+      let matchedField: JournalSearchResult["matchedField"] = "all";
+
+      if (!q) {
+        // No search query: everything matches with neutral score
+        results.push({
+          entry,
+          matchScore: 1,
+          matchedSnippets: [entry.body.slice(0, 140) + "..."],
+          matchedField: "all",
+        });
+        continue;
+      }
+
+      const titleLower = entry.title.toLowerCase();
+      const bodyLower = entry.body.toLowerCase();
+      const tagsString = entry.tags.join(" ").toLowerCase();
+
+      const titleMatches = (scope === "all" || scope === "title") && titleLower.includes(q);
+      const bodyMatches = (scope === "all" || scope === "body") && bodyLower.includes(q);
+      const tagMatches = (scope === "all" || scope === "tags") && tagsString.includes(q);
+
+      if (!titleMatches && !bodyMatches && !tagMatches) {
+        continue;
+      }
+
+      if (titleMatches) {
+        score += 15;
+        matchedField = "title";
+      }
+      if (tagMatches) {
+        score += 10;
+        if (matchedField === "all") matchedField = "tags";
+      }
+      if (bodyMatches) {
+        score += 8;
+        if (matchedField === "all") matchedField = "body";
+
+        // Extract a helpful snippet around the matching keyword
+        const idx = bodyLower.indexOf(q);
+        const start = Math.max(0, idx - 40);
+        const end = Math.min(entry.body.length, idx + q.length + 80);
+        const snippet = (start > 0 ? "..." : "") + entry.body.slice(start, end).trim() + (end < entry.body.length ? "..." : "");
+        matchedSnippets.push(snippet);
+      } else {
+        matchedSnippets.push(entry.body.slice(0, 130) + "...");
+      }
+
+      if (entry.isFavorite) score += 2;
+
+      results.push({
+        entry,
+        matchScore: score,
+        matchedSnippets,
+        matchedField,
+      });
+    }
+
+    // Sort results
+    const sort = filters.sort || "newest";
+    results.sort((a, b) => {
+      if (sort === "relevance" && q) {
+        if (b.matchScore !== a.matchScore) {
+          return b.matchScore - a.matchScore;
+        }
+      }
+      const timeA = new Date(a.entry.date + "T" + (a.entry.time || "00:00")).getTime();
+      const timeB = new Date(b.entry.date + "T" + (b.entry.time || "00:00")).getTime();
+      return sort === "oldest" ? timeA - timeB : timeB - timeA;
+    });
+
+    return results;
   },
 
   clearAllUserData(): void {

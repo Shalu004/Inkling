@@ -35,6 +35,24 @@ export type IssueCategory =
   | "coherence"
   | "transitions";
 
+export type ThemeType =
+  | "linen"
+  | "sage"
+  | "midnight"
+  | "sepia"
+  | "rose"
+  | "pure_light";
+
+export interface ReaderPreferences {
+  fontSize: number; // 14 - 24
+  fontFamily: "serif" | "sans" | "accessible";
+  lineHeight: "compact" | "normal" | "relaxed";
+  marginWidth: "narrow" | "normal" | "wide";
+  theme: "linen" | "sepia" | "sage" | "midnight";
+  mode: "scroll" | "paginated";
+  focusMode: boolean;
+}
+
 export interface UserPreferences {
   preferredGenres: string[];
   interests: string[];
@@ -44,6 +62,9 @@ export interface UserPreferences {
   aiFeedbackTone: "gentle" | "supportive_rigorous" | "academic";
   focusModeDefault: boolean;
   emailReminders: boolean;
+  theme?: ThemeType;
+  colorScheme?: "system" | "light" | "dark";
+  readerPreferences?: ReaderPreferences;
 }
 
 export interface WritingPrompt {
@@ -254,4 +275,73 @@ export interface LiteraryDiscovery {
   tags: string[];
   coverColor?: string;
 }
+
+// --- MULTI-PROVIDER BOOK CATALOG TYPES ---
+export type BookSource = "open_library" | "google_books" | "project_gutenberg";
+
+export interface BookAvailability {
+  type: "read_online" | "preview" | "borrow" | "public_domain" | "details_only";
+  label: string;
+  url?: string;
+  format?: string; // "html" | "epub" | "pdf" | "text"
+}
+
+export interface UnifiedBook {
+  id: string; // e.g. "ol:OL123", "gb:abc", "pg:105"
+  title: string;
+  authors: string[];
+  author: string;
+  description?: string;
+  coverUrl?: string;
+  coverColor?: string;
+  firstPublishYear?: number | string;
+  publisher?: string;
+  isbn?: string;
+  pageCount?: number;
+  subjects: string[];
+  language?: string;
+  source: BookSource;
+  sourceLabel: string;
+  sourceAttribution: string;
+  availability: BookAvailability;
+  downloadUrl?: string;
+  externalUrl?: string;
+  editionCount?: number;
+}
+
+export interface BookSearchParams {
+  query: string;
+  source?: "all" | BookSource;
+  genre?: string;
+  language?: string;
+  year?: string;
+  availability?: "all" | "read_online" | "preview" | "borrow" | "public_domain";
+  page?: number;
+  limit?: number;
+}
+
+// --- UNIVERSAL JOURNAL SEARCH TYPES ---
+export type JournalSearchScope = "all" | "title" | "body" | "tags";
+export type JournalSortOption = "newest" | "oldest" | "relevance";
+
+export interface JournalSearchFilters {
+  query: string;
+  scope: JournalSearchScope;
+  mood?: string; // "all" or specific mood
+  tag?: string;
+  isFavoriteOnly?: boolean;
+  startDate?: string; // YYYY-MM-DD
+  endDate?: string;   // YYYY-MM-DD
+  year?: string;
+  month?: string; // "01" - "12"
+  sort: JournalSortOption;
+}
+
+export interface JournalSearchResult {
+  entry: JournalEntry;
+  matchScore: number;
+  matchedSnippets: string[];
+  matchedField: "title" | "body" | "tags" | "all";
+}
+
 

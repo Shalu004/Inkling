@@ -34,9 +34,28 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="linen"
+      suppressHydrationWarning
       className={`${lora.variable} ${inter.variable} ${caveat.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-[#F5F0E6] text-[#332F29] font-sans antialiased selection:bg-[#D9DFCF]">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var raw = localStorage.getItem('inkling_user_preferences_v1');
+                if (raw) {
+                  var p = JSON.parse(raw);
+                  if (p.theme) {
+                    document.documentElement.setAttribute('data-theme', p.theme);
+                  }
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[var(--bg-main)] text-[var(--text-main)] font-sans antialiased selection:bg-[var(--bg-botanical-light)] transition-colors duration-200">
         <AppShell>{children}</AppShell>
       </body>
     </html>
