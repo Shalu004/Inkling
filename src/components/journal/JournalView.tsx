@@ -69,11 +69,13 @@ export function JournalView() {
   const [showCompanion, setShowCompanion] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [showInspiration, setShowInspiration] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load entries on mount
   useEffect(() => {
+    setMounted(true);
     loadEntries();
   }, []);
 
@@ -510,8 +512,11 @@ export function JournalView() {
               </div>
 
               {/* Result Count Indicator */}
-              <span className="text-[10px] text-[var(--text-muted)] shrink-0 font-medium">
-                {searchResults.length} {searchResults.length === 1 ? "entry" : "entries"}
+              <span
+                suppressHydrationWarning
+                className="text-[10px] text-[var(--text-muted)] shrink-0 font-medium"
+              >
+                {mounted ? `${searchResults.length} ${searchResults.length === 1 ? "entry" : "entries"}` : ""}
               </span>
             </div>
           </div>

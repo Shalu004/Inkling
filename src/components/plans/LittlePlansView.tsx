@@ -202,8 +202,16 @@ export function LittlePlansView() {
     return !task.completed && !!task.dueDate && !!todayStr && task.dueDate < todayStr;
   };
 
+  const todayCount = plans.filter(
+    (t) => !t.completed && (!t.dueDate || (todayStr ? t.dueDate <= todayStr : true))
+  ).length;
+  const upcomingCount = plans.filter(
+    (t) => !t.completed && !!t.dueDate && (todayStr ? t.dueDate > todayStr : false)
+  ).length;
+  const completedCount = plans.filter((t) => t.completed).length;
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[var(--border-warm)]">
         <div>
@@ -233,21 +241,30 @@ export function LittlePlansView() {
         {/* View Tabs */}
         <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--bg-sage-surface)]/60 border border-[var(--border-warm)] self-start">
           {[
-            { id: "today" as const, label: "Today" },
-            { id: "upcoming" as const, label: "Upcoming" },
-            { id: "completed" as const, label: "Completed" },
-            { id: "all" as const, label: "All Plans" },
+            { id: "today" as const, label: "Today", count: todayCount },
+            { id: "upcoming" as const, label: "Upcoming", count: upcomingCount },
+            { id: "completed" as const, label: "Completed", count: completedCount },
+            { id: "all" as const, label: "All Plans", count: plans.length },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setViewMode(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                 viewMode === tab.id
                   ? "bg-[var(--bg-paper)] text-[var(--text-main)] shadow-xs font-semibold"
                   : "text-[var(--text-muted)] hover:text-[var(--text-main)]"
               }`}
             >
-              {tab.label}
+              <span>{tab.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                  viewMode === tab.id
+                    ? "bg-[var(--bg-sage-surface)] text-[var(--accent-sage)] font-bold"
+                    : "bg-black/5 text-[var(--text-muted)]"
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
           ))}
         </div>

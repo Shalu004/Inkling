@@ -78,10 +78,10 @@ function SidebarContent({ className = "" }: SidebarProps) {
   };
 
   const navContent = (
-    <div className="flex flex-col h-full justify-between p-5 bg-[var(--bg-paper)] border-r border-[var(--border-warm)] transition-colors duration-200">
-      {/* Brand Header */}
-      <div className="space-y-6">
-        <div className="pt-1 pb-4 border-b border-[var(--border-warm)]/70">
+    <div className="flex flex-col h-full justify-between p-4 sm:p-5 bg-[var(--bg-paper)] border-r border-[var(--border-warm)] transition-colors duration-200 overflow-hidden">
+      {/* Brand Header & Navigation (scrollable on compact screens) */}
+      <div className="space-y-5 overflow-y-auto pr-1 flex-1 min-h-0 custom-scrollbar">
+        <div className="pt-1 pb-3 border-b border-[var(--border-warm)]/70">
           <Logo size="md" href="/" />
         </div>
 
@@ -127,7 +127,7 @@ function SidebarContent({ className = "" }: SidebarProps) {
         </div>
 
         {/* Secondary Navigation */}
-        <div className="space-y-1 pt-2">
+        <div className="space-y-1 pt-1">
           <div className="px-3 pb-1.5 text-[10px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">
             Reflections
           </div>
@@ -159,17 +159,8 @@ function SidebarContent({ className = "" }: SidebarProps) {
         </div>
       </div>
 
-      {/* Footer Area: Theme Shortcut, Quote & Settings */}
-      <div className="pt-4 border-t border-[var(--border-warm)]/80 space-y-3 relative">
-        {/* Subtle literary motto */}
-        <div className="px-3 py-2 rounded-lg bg-[var(--bg-main)] border border-[var(--border-warm)]/60 text-center">
-          <p className="font-handwritten text-sm text-[var(--accent-olive)] italic">
-            "Read deeply. Write honestly."
-          </p>
-          <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-wider block mt-0.5">
-            Inkling Sanctuary
-          </span>
-        </div>
+      {/* Footer Area: Settings & Theme Shortcut */}
+      <div className="pt-3 mt-2 border-t border-[var(--border-warm)]/80 relative shrink-0">
 
         {/* Theme Shortcut Popover */}
         {themePopoverOpen && (

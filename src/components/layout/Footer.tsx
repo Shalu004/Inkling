@@ -9,16 +9,17 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-8 py-10 space-y-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           {/* Brand & Motto */}
-          <div className="space-y-1.5 max-w-sm">
-            <div className="flex items-center gap-2">
+          <div className="space-y-1 max-w-md">
+            <div className="flex items-center gap-2.5">
               <FeatherIcon size={20} />
               <span className="font-literary font-semibold text-sm text-[var(--text-main)]">
                 Inkling
               </span>
+              <span className="text-[var(--text-muted)]">•</span>
+              <span className="font-literary text-xs italic text-[var(--text-body)]">
+                For the thoughts that deserve a place to stay.
+              </span>
             </div>
-            <p className="font-literary text-xs italic text-[var(--text-body)]">
-              "For the thoughts that deserve a place to stay."
-            </p>
           </div>
 
           {/* Sanctuary Navigation Links */}
