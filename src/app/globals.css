@@ -6,12 +6,13 @@
   --bg-paper: #FFFCF5;
   --bg-sage-surface: #E5E6D9;
   --bg-botanical-light: #D9DFCF;
-  --border-warm: #DED7C9;
-  --text-main: #332F29;
-  --text-muted: #777267;
-  --accent-sage: #65745A;
-  --accent-olive: #485641;
-  --accent-burgundy: #754650;
+  --border-warm: #D6CEC0;
+  --text-main: #302B25;
+  --text-body: #38342E;
+  --text-muted: #655E53;
+  --accent-sage: #58694E;
+  --accent-olive: #3E4D38;
+  --accent-burgundy: #6B3B46;
 }
 
 :root[data-theme="sage"] {
@@ -19,25 +20,27 @@
   --bg-paper: #F5F8F3;
   --bg-sage-surface: #D8E2D3;
   --bg-botanical-light: #C7D6C1;
-  --border-warm: #CAD5C4;
-  --text-main: #2A3628;
-  --text-muted: #5B6D58;
-  --accent-sage: #4E6548;
-  --accent-olive: #354732;
-  --accent-burgundy: #6D434B;
+  --border-warm: #BAC7B4;
+  --text-main: #222E20;
+  --text-body: #2B3829;
+  --text-muted: #4D604A;
+  --accent-sage: #445A3E;
+  --accent-olive: #2D3E2A;
+  --accent-burgundy: #643B43;
 }
 
 :root[data-theme="midnight"] {
-  --bg-main: #181A18;
-  --bg-paper: #222521;
-  --bg-sage-surface: #2D322B;
-  --bg-botanical-light: #394237;
-  --border-warm: #373E36;
-  --text-main: #ECEFE9;
-  --text-muted: #9DA89A;
-  --accent-sage: #8DA682;
-  --accent-olive: #ADC3A4;
-  --accent-burgundy: #B57D89;
+  --bg-main: #151715;
+  --bg-paper: #1F221E;
+  --bg-sage-surface: #282E26;
+  --bg-botanical-light: #343C31;
+  --border-warm: #3A4138;
+  --text-main: #F5EFEB;
+  --text-body: #E8E2DC;
+  --text-muted: #B5BFB1;
+  --accent-sage: #98B48C;
+  --accent-olive: #B8D1AE;
+  --accent-burgundy: #C58B97;
 }
 
 :root[data-theme="sepia"] {
@@ -45,12 +48,13 @@
   --bg-paper: #F9F3E8;
   --bg-sage-surface: #E2D3BC;
   --bg-botanical-light: #D5C2A7;
-  --border-warm: #DACAB0;
-  --text-main: #36291C;
-  --text-muted: #756350;
-  --accent-sage: #75573A;
-  --accent-olive: #543E26;
-  --accent-burgundy: #783B41;
+  --border-warm: #D0BEA2;
+  --text-main: #2E2215;
+  --text-body: #382A1B;
+  --text-muted: #63513C;
+  --accent-sage: #6E4F32;
+  --accent-olive: #4E3720;
+  --accent-burgundy: #72343B;
 }
 
 :root[data-theme="rose"] {
@@ -58,12 +62,13 @@
   --bg-paper: #FDF7F7;
   --bg-sage-surface: #EBDBDC;
   --bg-botanical-light: #E0C9CC;
-  --border-warm: #DFC9CD;
-  --text-main: #38242A;
-  --text-muted: #795F66;
-  --accent-sage: #754650;
-  --accent-olive: #542F37;
-  --accent-burgundy: #8C4757;
+  --border-warm: #D5B9BF;
+  --text-main: #321D24;
+  --text-body: #3A252C;
+  --text-muted: #6B4F57;
+  --accent-sage: #6E3E49;
+  --accent-olive: #4D2830;
+  --accent-burgundy: #823C4D;
 }
 
 :root[data-theme="pure_light"] {
@@ -71,18 +76,23 @@
   --bg-paper: #FFFFFF;
   --bg-sage-surface: #ECEEF0;
   --bg-botanical-light: #DFE3E6;
-  --border-warm: #DFE2E5;
-  --text-main: #1C2024;
-  --text-muted: #66707A;
-  --accent-sage: #4E634C;
-  --accent-olive: #344633;
-  --accent-burgundy: #75444E;
+  --border-warm: #CFD4D8;
+  --text-main: #16191D;
+  --text-body: #202429;
+  --text-muted: #505A65;
+  --accent-sage: #445942;
+  --accent-olive: #2B3B2A;
+  --accent-burgundy: #6B3B45;
 }
 
 @theme {
   --font-serif: var(--font-lora), Georgia, Cambria, serif;
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-hand: var(--font-caveat), cursive;
+  --font-literary: var(--font-lora), Georgia, Cambria, serif;
+  --font-ui: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: var(--font-lora), Georgia, Cambria, serif;
+  --font-annotation: var(--font-caveat), cursive;
 
   /* Dynamic Theme Tokens */
   --color-bg-sanctuary: var(--bg-main);
@@ -93,12 +103,14 @@
   --color-deep-olive: var(--accent-olive);
   --color-burgundy: var(--accent-burgundy);
   --color-text-primary: var(--text-main);
+  --color-text-body: var(--text-body);
   --color-text-secondary: var(--text-muted);
   --color-warm-border: var(--border-warm);
 
   /* Semantic Aliases */
   --color-parchment: var(--bg-main);
   --color-ink-primary: var(--text-main);
+  --color-ink-body: var(--text-body);
   --color-ink-secondary: var(--text-muted);
   --color-creative-ink: var(--accent-sage);
   --color-creative-wash: var(--bg-sage-surface);
@@ -119,7 +131,7 @@
 html,
 body {
   background-color: var(--bg-main);
-  color: var(--text-main);
+  color: var(--text-body);
   font-family: var(--font-sans);
   min-height: 100vh;
   margin: 0;
@@ -127,6 +139,13 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 /* Typography Classes */
@@ -140,6 +159,18 @@ body {
 
 .font-handwritten {
   font-family: var(--font-hand);
+}
+
+.text-ink-primary {
+  color: var(--text-main);
+}
+
+.text-ink-body {
+  color: var(--text-body);
+}
+
+.text-ink-secondary {
+  color: var(--text-muted);
 }
 
 /* Sanctuary Paper Card */

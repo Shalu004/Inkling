@@ -14,8 +14,15 @@ import {
   ReaderPreferences,
   JournalSearchFilters,
   JournalSearchResult,
+  LiteraryQuote,
 } from "@/types";
-import { MISTAKE_RULES_CATALOG, INITIAL_JOURNAL_ENTRIES, CURATED_BOOKS } from "@/lib/curated/data";
+import {
+  MISTAKE_RULES_CATALOG,
+  INITIAL_JOURNAL_ENTRIES,
+  CURATED_BOOKS,
+  CURATED_LITERARY_QUOTES,
+  CURATED_LITERARY_VOCABULARY,
+} from "@/lib/curated/data";
 
 const STORAGE_KEYS = {
   WRITING_SESSIONS: "inkling_writing_sessions_v1",
@@ -29,6 +36,8 @@ const STORAGE_KEYS = {
   LIBRARY_BOOKS: "inkling_library_books_v2",
   READING_POSITIONS: "inkling_reading_positions_v1",
   SAVED_PASSAGES: "inkling_saved_passages_v1",
+  SAVED_QUOTES: "inkling_saved_quotes_v1",
+  QUOTE_REFLECTIONS: "inkling_quote_reflections_v1",
 };
 
 export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
@@ -232,6 +241,10 @@ export const hybridStore = {
   // --- VOCABULARY / WORD GARDEN ---
   getVocabulary(): VocabularyEntry[] {
     const list = getStorage<VocabularyEntry[]>(STORAGE_KEYS.VOCABULARY, []);
+    if (list.length === 0) {
+      setStorage(STORAGE_KEYS.VOCABULARY, CURATED_LITERARY_VOCABULARY);
+      return CURATED_LITERARY_VOCABULARY;
+    }
     return list.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
@@ -242,7 +255,7 @@ export const hybridStore = {
     return list.find((v) => v.id === id) || null;
   },
 
-  saveVocabulary(entry: Omit<VocabularyEntry, "id" | "createdAt" | "reviewCount"> & { id?: string }): VocabularyEntry {
+  saveVocabulary(entry: Partial<VocabularyEntry> & { word: string; definition: string }): VocabularyEntry {
     const list = this.getVocabulary();
     const existingIndex = entry.id ? list.findIndex((v) => v.id === entry.id) : -1;
     const now = new Date().toISOString();
@@ -253,13 +266,19 @@ export const hybridStore = {
       partOfSpeech: entry.partOfSpeech || "noun",
       phonetic: entry.phonetic,
       definition: entry.definition,
-      exampleSentence: entry.exampleSentence,
+      exampleSentence: entry.exampleSentence || "",
+      personalExample: entry.personalExample,
       contextualNuance: entry.contextualNuance,
+      synonyms: entry.synonyms || [],
+      nuancedDistinction: entry.nuancedDistinction,
+      etymology: entry.etymology,
+      tags: entry.tags || [],
+      isFavorite: entry.isFavorite ?? false,
       sourceContext: entry.sourceContext,
       sourceType: entry.sourceType || "manual_search",
       status: entry.status || "learning",
-      reviewCount: 0,
-      createdAt: now,
+      reviewCount: entry.reviewCount || 0,
+      createdAt: entry.createdAt || now,
       lastReviewedAt: entry.lastReviewedAt,
     };
 
@@ -306,9 +325,83 @@ export const hybridStore = {
     }
   },
 
+  savePersonalExample(id: string, personalExample: string): VocabularyEntry | null {
+    const list = this.getVocabulary();
+    const entry = list.find((v) => v.id === id);
+    if (entry) {
+      entry.personalExample = personalExample;
+      setStorage(STORAGE_KEYS.VOCABULARY, list);
+      return entry;
+    }
+    return null;
+  },
+
+  toggleFavoriteWord(id: string): boolean {
+    const list = this.getVocabulary();
+    const entry = list.find((v) => v.id === id);
+    if (entry) {
+      entry.isFavorite = !entry.isFavorite;
+      setStorage(STORAGE_KEYS.VOCABULARY, list);
+      return entry.isFavorite;
+    }
+    return false;
+  },
+
   deleteVocabulary(id: string): void {
     const list = this.getVocabulary().filter((v) => v.id !== id);
     setStorage(STORAGE_KEYS.VOCABULARY, list);
+  },
+
+  // --- LITERARY QUOTATIONS ---
+  getLiteraryQuotes(): LiteraryQuote[] {
+    return CURATED_LITERARY_QUOTES;
+  },
+
+  getDailyQuote(): LiteraryQuote {
+    const quotes = this.getLiteraryQuotes();
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = now.getTime() - start.getTime();
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    return quotes[dayOfYear % quotes.length] || quotes[0];
+  },
+
+  getSavedQuoteIds(): string[] {
+    return getStorage<string[]>(STORAGE_KEYS.SAVED_QUOTES, [
+      "quote-woolf-desire",
+      "quote-rilke-questions",
+      "quote-orwell-windowpane",
+    ]);
+  },
+
+  toggleSaveQuote(quoteId: string): boolean {
+    const ids = this.getSavedQuoteIds();
+    const idx = ids.indexOf(quoteId);
+    let isSaved = false;
+    if (idx >= 0) {
+      ids.splice(idx, 1);
+      isSaved = false;
+    } else {
+      ids.unshift(quoteId);
+      isSaved = true;
+    }
+    setStorage(STORAGE_KEYS.SAVED_QUOTES, ids);
+    return isSaved;
+  },
+
+  isQuoteSaved(quoteId: string): boolean {
+    return this.getSavedQuoteIds().includes(quoteId);
+  },
+
+  getQuoteReflections(): Record<string, string> {
+    return getStorage<Record<string, string>>(STORAGE_KEYS.QUOTE_REFLECTIONS, {});
+  },
+
+  saveQuoteReflection(quoteId: string, reflection: string): void {
+    const map = this.getQuoteReflections();
+    map[quoteId] = reflection;
+    setStorage(STORAGE_KEYS.QUOTE_REFLECTIONS, map);
   },
 
   // --- TWO-MINUTE SPARKS ---

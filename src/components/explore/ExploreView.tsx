@@ -29,6 +29,7 @@ import {
 } from "@/lib/curated/data";
 import { LiteraryDiscovery, BookItem, ReadingResource, WritingPrompt } from "@/types";
 import { hybridStore } from "@/lib/store/hybridStore";
+import { LiteraryQuoteCollection } from "./LiteraryQuoteCollection";
 
 type TabType = "all" | "poem" | "essay" | "quote" | "books" | "prompts";
 
@@ -272,65 +273,37 @@ export function ExploreView() {
       {/* Main Editorial Content Stream */}
       <div className="space-y-12">
         {/* SECTION 1: Quotations & Memorable Passages */}
-        {(activeTab === "all" || activeTab === "quote") && (
+        {activeTab === "quote" ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#DED7C9] pb-2">
-              <h2 className="font-serif text-xl text-[#332F29] flex items-center gap-2">
-                <Quote className="w-4 h-4 text-[#754650]" />
-                <span>Memorable Quotations & Commonplace Notes</span>
+            <div className="flex items-center justify-between border-b border-warm-border pb-2">
+              <h2 className="font-literary text-2xl text-ink-primary font-semibold flex items-center gap-2">
+                <Quote className="w-5 h-5 text-primary-sage" />
+                <span>Literary Quotation Collection & Commonplace</span>
               </h2>
-              <span className="text-xs text-[#777267]">Lines worth holding onto</span>
+              <span className="text-xs text-ink-secondary">Authentic, verified lines from enduring literature</span>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredDiscoveries
-                .filter((d) => d.type === "quote")
-                .map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-6 rounded-xl bg-[#FFFCF5] border border-[#DED7C9] hover:border-[#65745A]/40 transition-all flex flex-col justify-between space-y-4 relative group hover:shadow-xs"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-[11px] text-[#777267]">
-                        <span className="px-2 py-0.5 rounded bg-[#E5E6D9] text-[#485641] font-medium">
-                          {item.source} {item.year ? `(${item.year})` : ""}
-                        </span>
-                        <span className="italic capitalize">{item.mood}</span>
-                      </div>
-
-                      <blockquote className="font-serif text-base sm:text-lg text-[#332F29] leading-relaxed italic border-l-2 border-[#754650] pl-3">
-                        {item.excerpt}
-                      </blockquote>
-                    </div>
-
-                    <div className="pt-3 border-t border-[#DED7C9]/60 flex items-center justify-between">
-                      <span className="text-xs font-serif text-[#485641] font-medium">
-                        — {item.author}
-                      </span>
-                      <div className="flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleCopyText(item.excerpt, "Quotation")}
-                          title="Copy quotation"
-                          className="p-1.5 rounded text-[#777267] hover:text-[#332F29] hover:bg-[#E5E6D9] transition-colors"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleSaveToJournal(item.title, item.excerpt, item.author)
-                          }
-                          title="Write reflection in Journal"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-medium bg-[#E5E6D9] text-[#485641] hover:bg-[#D9DFCF] transition-colors"
-                        >
-                          <PenTool className="w-3 h-3" />
-                          <span>Reflect</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
+            <LiteraryQuoteCollection />
           </div>
+        ) : (
+          activeTab === "all" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-warm-border pb-2">
+                <h2 className="font-literary text-xl text-ink-primary font-semibold flex items-center gap-2">
+                  <Quote className="w-4 h-4 text-primary-sage" />
+                  <span>Memorable Quotations & Commonplace Notes</span>
+                </h2>
+                <button
+                  onClick={() => setActiveTab("quote")}
+                  className="text-xs text-primary-sage hover:underline flex items-center gap-1 font-medium"
+                >
+                  <span>Explore Full Collection ({hybridStore.getLiteraryQuotes().length})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <LiteraryQuoteCollection />
+            </div>
+          )
         )}
 
         {/* SECTION 2: Poetry Anthologies */}

@@ -722,7 +722,7 @@ export function JournalView() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title of this day's reflection..."
-            className="w-full font-literary text-3xl sm:text-4xl font-normal text-[var(--text-main)] placeholder:text-[var(--text-muted)]/50 bg-transparent border-none focus:outline-none tracking-tight"
+            className="w-full font-literary text-3xl sm:text-4xl font-semibold text-[var(--text-main)] placeholder:text-[var(--text-muted)]/60 bg-transparent border-none focus:outline-none tracking-tight"
           />
 
           {/* Mood & Weather Subtitle */}

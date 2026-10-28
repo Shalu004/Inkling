@@ -41,8 +41,8 @@ const THEMES: ThemeOption[] = [
     swatches: {
       bg: "#F5F0E6",
       paper: "#FFFCF5",
-      accent: "#65745A",
-      text: "#332F29",
+      accent: "#58694E",
+      text: "#302B25",
     },
   },
   {
@@ -53,8 +53,8 @@ const THEMES: ThemeOption[] = [
     swatches: {
       bg: "#E7ECE3",
       paper: "#F5F8F3",
-      accent: "#4E6548",
-      text: "#2A3628",
+      accent: "#445A3E",
+      text: "#222E20",
     },
   },
   {
@@ -63,10 +63,10 @@ const THEMES: ThemeOption[] = [
     subtitle: "Dark Sanctuary",
     description: "Deep forest twilight and subdued paper tones for midnight contemplation and candlelit writing.",
     swatches: {
-      bg: "#181A18",
-      paper: "#222521",
-      accent: "#8DA682",
-      text: "#ECEFE9",
+      bg: "#151715",
+      paper: "#1F221E",
+      accent: "#98B48C",
+      text: "#F5EFEB",
     },
   },
   {
@@ -77,8 +77,8 @@ const THEMES: ThemeOption[] = [
     swatches: {
       bg: "#EFE5D3",
       paper: "#F9F3E8",
-      accent: "#75573A",
-      text: "#36291C",
+      accent: "#6E4F32",
+      text: "#2E2215",
     },
   },
   {
@@ -89,8 +89,8 @@ const THEMES: ThemeOption[] = [
     swatches: {
       bg: "#F4EAEB",
       paper: "#FDF7F7",
-      accent: "#754650",
-      text: "#38242A",
+      accent: "#6E3E49",
+      text: "#321D24",
     },
   },
   {
@@ -101,8 +101,8 @@ const THEMES: ThemeOption[] = [
     swatches: {
       bg: "#F7F7F8",
       paper: "#FFFFFF",
-      accent: "#4E634C",
-      text: "#1C2024",
+      accent: "#445942",
+      text: "#16191D",
     },
   },
 ];

@@ -30,12 +30,12 @@ interface SidebarProps {
 }
 
 const THEME_SWATCHES: Array<{ id: ThemeType; name: string; bg: string; dot: string }> = [
-  { id: "linen", name: "Linen", bg: "#F5F0E6", dot: "#65745A" },
-  { id: "sage", name: "Sage", bg: "#E7ECE3", dot: "#4E6548" },
-  { id: "midnight", name: "Midnight", bg: "#181A18", dot: "#8DA682" },
-  { id: "sepia", name: "Sepia", bg: "#EFE5D3", dot: "#75573A" },
-  { id: "rose", name: "Rose", bg: "#F4EAEB", dot: "#754650" },
-  { id: "pure_light", name: "Pure Light", bg: "#F7F7F8", dot: "#4E634C" },
+  { id: "linen", name: "Linen", bg: "#F5F0E6", dot: "#58694E" },
+  { id: "sage", name: "Sage", bg: "#E7ECE3", dot: "#445A3E" },
+  { id: "midnight", name: "Midnight", bg: "#151715", dot: "#98B48C" },
+  { id: "sepia", name: "Sepia", bg: "#EFE5D3", dot: "#6E4F32" },
+  { id: "rose", name: "Rose", bg: "#F4EAEB", dot: "#6E3E49" },
+  { id: "pure_light", name: "Pure Light", bg: "#F7F7F8", dot: "#445942" },
 ];
 
 function SidebarContent({ className = "" }: SidebarProps) {

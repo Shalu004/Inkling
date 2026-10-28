@@ -61,9 +61,17 @@ export function HomeDashboard() {
     const books = hybridStore.getLibraryBooks();
     setLibraryBooks(books);
 
-    // 3. Pick a daily quote
-    const quotes = CURATED_DISCOVERIES.filter((d) => d.type === "quote" || d.type === "poem");
-    setTodayQuote(quotes[Math.floor(Math.random() * quotes.length)] || quotes[0]);
+    // 3. Pick verified daily literary quote
+    const daily = hybridStore.getDailyQuote();
+    setTodayQuote({
+      id: daily.id,
+      title: daily.work,
+      author: daily.author,
+      type: "quote",
+      excerpt: `“${daily.quote}”`,
+      source: `${daily.work}${daily.year ? ` (${daily.year})` : ""}`,
+      tags: ["Daily Quote", daily.theme],
+    });
   }, []);
 
   const latestEntry = journalEntries[0] || null;
@@ -324,23 +332,32 @@ export function HomeDashboard() {
 
           {/* Card 2: Thought-Provoking Quotation */}
           {todayQuote && (
-            <div className="sanctuary-card p-6 bg-[#E5E6D9]/40 border-[#DED7C9] flex flex-col justify-between space-y-4">
+            <div className="sanctuary-card p-6 bg-sage-surface/40 border-warm-border flex flex-col justify-between space-y-4">
               <div className="space-y-3">
-                <div className="w-8 h-8 rounded-full bg-[#FFFCF5] border border-[#DED7C9] flex items-center justify-center text-[#65745A]">
-                  <Quote className="w-4 h-4" />
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-full bg-paper border border-warm-border flex items-center justify-center text-primary-sage">
+                    <Quote className="w-4 h-4" />
+                  </div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-deep-olive bg-botanical-light px-2 py-0.5 rounded">
+                    Quote of the Day
+                  </span>
                 </div>
-                <blockquote className="font-literary text-lg font-medium text-[#332F29] italic leading-relaxed">
+                <blockquote className="font-literary text-lg font-medium text-ink-primary italic leading-relaxed">
                   {todayQuote.excerpt}
                 </blockquote>
-                <div className="text-xs text-[#777267] pt-2">
-                  <span className="font-semibold text-[#332F29]">— {todayQuote.author}</span>
+                <div className="text-xs text-ink-secondary pt-2">
+                  <span className="font-semibold text-ink-primary">— {todayQuote.author}</span>
                   {todayQuote.source && <span className="block text-[11px] opacity-80">{todayQuote.source}</span>}
                 </div>
               </div>
 
-              <div className="text-xs text-[#65745A] font-handwritten text-sm">
-                Save to your journal or ponder quietly
-              </div>
+              <Link
+                href="/explore"
+                className="text-xs font-semibold text-primary-sage hover:underline flex items-center gap-1 pt-2 font-ui"
+              >
+                <span>Browse All Quotes & Share Card</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           )}
 

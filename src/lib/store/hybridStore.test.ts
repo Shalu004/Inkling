@@ -12,7 +12,8 @@ describe("hybridStore", () => {
     expect(summary.totalSessions).toBe(0);
     expect(summary.totalSparks).toBe(0);
     expect(summary.streak).toBe(0);
-    expect(summary.vocabTotal).toBe(0);
+    // Seeded with curated literary lexicon
+    expect(summary.vocabTotal).toBeGreaterThanOrEqual(14);
   });
 
   it("saves a writing session and updates word count", () => {
@@ -184,5 +185,65 @@ describe("hybridStore", () => {
     expect(favResults.every((r) => r.entry.isFavorite)).toBe(true);
     expect(favResults.some((r) => r.entry.title === "Morning Solitude in the Woods")).toBe(true);
   });
+
+  it("provides curated literary quotes and calculates quote of the day", () => {
+    const quotes = hybridStore.getLiteraryQuotes();
+    expect(quotes.length).toBeGreaterThanOrEqual(18);
+    expect(quotes[0].author).toBeDefined();
+    expect(quotes[0].work).toBeDefined();
+    expect(quotes[0].quote).toBeTruthy();
+
+    const daily = hybridStore.getDailyQuote();
+    expect(daily).toBeDefined();
+    expect(daily.quote).toBeTruthy();
+    expect(daily.author).toBeTruthy();
+  });
+
+  it("handles saving quotes and personal reflections", () => {
+    const quotes = hybridStore.getLiteraryQuotes();
+    // Pick a quote that is not saved by default
+    const testQuote = quotes.find((q) => !hybridStore.isQuoteSaved(q.id)) || quotes[quotes.length - 1];
+
+    // Toggle save
+    expect(hybridStore.isQuoteSaved(testQuote.id)).toBe(false);
+    const saved = hybridStore.toggleSaveQuote(testQuote.id);
+    expect(saved).toBe(true);
+    expect(hybridStore.isQuoteSaved(testQuote.id)).toBe(true);
+
+    // Save personal reflection
+    hybridStore.saveQuoteReflection(testQuote.id, "This resonates deeply with my morning walk.");
+    const reflections = hybridStore.getQuoteReflections();
+    expect(reflections[testQuote.id]).toBeDefined();
+    expect(reflections[testQuote.id]).toBe("This resonates deeply with my morning walk.");
+
+    // Toggle unsave
+    const unsaved = hybridStore.toggleSaveQuote(testQuote.id);
+    expect(unsaved).toBe(false);
+    expect(hybridStore.isQuoteSaved(testQuote.id)).toBe(false);
+  });
+
+  it("supports personal example sentences and word favoriting in vocabulary", () => {
+    const vocabList = hybridStore.getVocabulary();
+    expect(vocabList.length).toBeGreaterThan(0);
+    const targetWord = vocabList[0];
+
+    // Save personal example
+    const updated = hybridStore.savePersonalExample(
+      targetWord.id,
+      "I watched the petrichor rise from the warm cobblestones after the downpour."
+    );
+    expect(updated?.personalExample).toBe("I watched the petrichor rise from the warm cobblestones after the downpour.");
+
+    // Toggle favorite
+    expect(targetWord.isFavorite).toBeFalsy();
+    const favResult = hybridStore.toggleFavoriteWord(targetWord.id);
+    expect(favResult).toBe(true);
+    expect(hybridStore.getVocabularyById(targetWord.id)?.isFavorite).toBe(true);
+
+    const unFavResult = hybridStore.toggleFavoriteWord(targetWord.id);
+    expect(unFavResult).toBe(false);
+    expect(hybridStore.getVocabularyById(targetWord.id)?.isFavorite).toBe(false);
+  });
 });
+
 

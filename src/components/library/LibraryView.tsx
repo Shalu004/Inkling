@@ -199,8 +199,8 @@ export function LibraryView() {
               onClick={() => setSelectedShelf(tab.id as any)}
               className={`px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                 selectedShelf === tab.id
-                  ? "bg-[#65745A] text-[#FFFCF5] font-semibold shadow-2xs"
-                  : "bg-[#FFFCF5] text-[#777267] hover:text-[#332F29] border border-[#DED7C9]"
+                  ? "bg-primary-sage text-paper font-semibold shadow-2xs"
+                  : "bg-paper text-ink-secondary hover:text-ink-primary border border-warm-border"
               }`}
             >
               {tab.label} <span className="opacity-75">({tab.count})</span>
@@ -210,26 +210,26 @@ export function LibraryView() {
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#777267]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-secondary" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search title, author, genre..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[#DED7C9] bg-[#FFFCF5] text-xs text-[#332F29] placeholder:text-[#777267]/60 focus:outline-none focus:border-[#65745A]"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-warm-border bg-paper text-xs text-ink-primary placeholder:text-ink-secondary/60 focus:outline-none focus:border-primary-sage"
           />
         </div>
       </div>
 
       {/* Bookshelf Visual Grid */}
       {filteredBooks.length === 0 ? (
-        <div className="sanctuary-card p-12 text-center space-y-3">
-          <BookOpen className="w-8 h-8 text-[#65745A]/50 mx-auto" />
-          <h3 className="font-literary text-xl font-medium text-[#332F29]">
+        <div className="sanctuary-card p-12 text-center space-y-3 bg-paper border-warm-border">
+          <BookOpen className="w-8 h-8 text-primary-sage/50 mx-auto" />
+          <h3 className="font-literary text-xl font-medium text-ink-primary">
             This shelf is quiet
           </h3>
-          <p className="text-xs text-[#777267] max-w-sm mx-auto">
-            No books found matching this filter. Add a book from your physical shelf to catalog it here.
+          <p className="text-xs text-ink-secondary max-w-sm mx-auto">
+            No books found matching this filter. Add a book from your physical shelf or search World Catalogs.
           </p>
         </div>
       ) : (
@@ -281,10 +281,10 @@ export function LibraryView() {
 
               {/* Title & Author Below */}
               <div className="px-0.5">
-                <h4 className="font-literary text-sm font-semibold text-[#332F29] group-hover:text-[#65745A] transition-colors line-clamp-1">
+                <h4 className="font-literary text-sm font-semibold text-ink-primary group-hover:text-primary-sage transition-colors line-clamp-1">
                   {book.title}
                 </h4>
-                <p className="text-xs text-[#777267] truncate">{book.author}</p>
+                <p className="text-xs text-ink-secondary truncate">{book.author}</p>
               </div>
             </div>
           ))}
@@ -297,45 +297,45 @@ export function LibraryView() {
       {activeBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-[#332F29]/50 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setActiveBook(null)}
           />
 
-          <div className="relative w-full max-w-2xl bg-[#FFFCF5] rounded-xl border border-[#DED7C9] shadow-xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl bg-paper rounded-xl border border-warm-border shadow-xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in duration-150">
             {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-[#DED7C9] pb-4">
+            <div className="flex items-start justify-between gap-4 border-b border-warm-border pb-4">
               <div className="flex gap-4 items-start">
                 {/* Book Cover Thumbnail */}
                 <div
-                  className="book-cover w-20 h-28 shrink-0 p-2.5 flex flex-col justify-between text-[#FFFCF5]"
-                  style={{ backgroundColor: activeBook.coverColor || "#65745A" }}
+                  className="book-cover w-20 h-28 shrink-0 p-2.5 flex flex-col justify-between text-paper"
+                  style={{ backgroundColor: activeBook.coverColor || "var(--accent-sage)" }}
                 >
                   <span className="font-literary text-[10px] font-bold line-clamp-2">
                     {activeBook.title}
                   </span>
-                  <span className="text-[8px] text-[#FFFCF5]/80 truncate">
+                  <span className="text-[8px] text-paper/80 truncate">
                     {activeBook.author}
                   </span>
                 </div>
 
                 <div>
-                  <h3 className="font-literary text-2xl font-bold text-[#332F29]">
+                  <h3 className="font-literary text-2xl font-bold text-ink-primary">
                     {activeBook.title}
                   </h3>
-                  <p className="text-xs text-[#777267] mt-0.5">By {activeBook.author}</p>
+                  <p className="text-xs text-ink-secondary mt-0.5">By {activeBook.author}</p>
                   <div className="flex items-center gap-2 mt-2 text-xs">
-                    <span className="px-2 py-0.5 rounded bg-[#E5E6D9] text-[#485641] text-[11px] font-semibold">
+                    <span className="px-2 py-0.5 rounded bg-sage-surface text-deep-olive text-[11px] font-semibold">
                       {activeBook.genre}
                     </span>
                     <span>•</span>
-                    <span className="text-[#777267]">{activeBook.estimatedPages} pages</span>
+                    <span className="text-ink-secondary">{activeBook.estimatedPages} pages</span>
                   </div>
                 </div>
               </div>
 
               <button
                 onClick={() => setActiveBook(null)}
-                className="p-1 rounded text-[#777267] hover:bg-[#E5E6D9] hover:text-[#332F29]"
+                className="p-1 rounded text-ink-secondary hover:bg-sage-surface hover:text-ink-primary"
               >
                 <X className="w-5 h-5" />
               </button>

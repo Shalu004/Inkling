@@ -154,14 +154,40 @@ export interface VocabularyEntry {
   phonetic?: string;
   definition: string;
   exampleSentence: string;
+  personalExample?: string;
   contextualNuance?: string;
+  synonyms?: string[];
+  nuancedDistinction?: string;
+  etymology?: string;
+  tags?: string[];
+  isFavorite?: boolean;
   sourceContext?: string;
-  sourceType: "writing_coach" | "reading_corner" | "manual_search";
+  sourceType: "writing_coach" | "reading_corner" | "manual_search" | "curated_lexicon";
   status: VocabStatus;
   reviewCount: number;
   lastReviewedAt?: string;
   nextReviewAt?: string;
   createdAt: string;
+}
+
+export interface LiteraryQuote {
+  id: string;
+  quote: string;
+  author: string;
+  work: string;
+  year?: string;
+  theme: string; // e.g. "Solitude & Quiet", "Art of Writing", "Nature & Wonder", "Patience & Growth"
+  emotion: string; // e.g. "reflective", "observant", "calm", "creative", "introspective"
+  sourceUrl?: string;
+  botanicalMotif?: "laurel" | "fern" | "ivy" | "ginkgo" | "olive" | "rose";
+  contextNote?: string;
+}
+
+export interface SavedQuoteReflection {
+  quoteId: string;
+  savedAt: string;
+  reflection?: string;
+  isFavorite: boolean;
 }
 
 export interface ComprehensionQuestion {
