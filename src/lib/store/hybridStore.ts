@@ -1,0 +1,543 @@
+import {
+  WritingSession,
+  AIReview,
+  VocabularyEntry,
+  TwoMinuteSpark,
+  DailyActivity,
+  ReadingHistoryItem,
+  UserPreferences,
+  MistakePattern,
+  IssueCategory,
+} from "@/types";
+import { MISTAKE_RULES_CATALOG } from "@/lib/curated/data";
+
+const STORAGE_KEYS = {
+  WRITING_SESSIONS: "inkling_writing_sessions_v1",
+  AI_REVIEWS: "inkling_ai_reviews_v1",
+  VOCABULARY: "inkling_vocabulary_v1",
+  SPARKS: "inkling_sparks_v1",
+  READING_HISTORY: "inkling_reading_history_v1",
+  DAILY_ACTIVITIES: "inkling_daily_activities_v1",
+  PREFERENCES: "inkling_user_preferences_v1",
+};
+
+export const DEFAULT_PREFERENCES: UserPreferences = {
+  preferredGenres: ["reflective", "creative"],
+  interests: ["literature", "philosophy", "psychology"],
+  dailyWordGoal: 250,
+  dailyWritingMinutes: 15,
+  readingDifficulty: "intermediate",
+  aiFeedbackTone: "supportive_rigorous",
+  focusModeDefault: false,
+  emailReminders: false,
+};
+
+let memoryStorage: Record<string, string> = {};
+
+function getStorage<T>(key: string, fallback: T): T {
+  try {
+    const raw = typeof window !== "undefined" ? localStorage.getItem(key) : memoryStorage[key];
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function setStorage<T>(key: string, value: T): void {
+  try {
+    const serialized = JSON.stringify(value);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(key, serialized);
+    } else {
+      memoryStorage[key] = serialized;
+    }
+  } catch (err) {
+    console.error("Storage error:", err);
+  }
+}
+
+function getTodayKey(): string {
+  return new Date().toISOString().split("T")[0];
+}
+
+export const hybridStore = {
+  // --- PREFERENCES ---
+  getPreferences(): UserPreferences {
+    return getStorage<UserPreferences>(STORAGE_KEYS.PREFERENCES, DEFAULT_PREFERENCES);
+  },
+
+  savePreferences(prefs: Partial<UserPreferences>): UserPreferences {
+    const current = this.getPreferences();
+    const updated = { ...current, ...prefs };
+    setStorage(STORAGE_KEYS.PREFERENCES, updated);
+    return updated;
+  },
+
+  // --- WRITING SESSIONS ---
+  getWritingSessions(): WritingSession[] {
+    const sessions = getStorage<WritingSession[]>(STORAGE_KEYS.WRITING_SESSIONS, []);
+    return sessions.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  },
+
+  getWritingSessionById(id: string): WritingSession | null {
+    const sessions = this.getWritingSessions();
+    return sessions.find((s) => s.id === id) || null;
+  },
+
+  saveWritingSession(session: Partial<WritingSession> & { id: string }): WritingSession {
+    const sessions = this.getWritingSessions();
+    const existingIndex = sessions.findIndex((s) => s.id === session.id);
+    const now = new Date().toISOString();
+
+    const fullSession: WritingSession = {
+      id: session.id,
+      title: session.title || "Untitled Reflection",
+      content: session.content || "",
+      mood: session.mood,
+      format: session.format || "reflective_essay",
+      wordCount: session.content
+        ? session.content.trim().split(/\s+/).filter(Boolean).length
+        : 0,
+      durationSeconds: session.durationSeconds || 0,
+      status: session.status || "draft",
+      hasAiReview: session.hasAiReview ?? false,
+      promptId: session.promptId,
+      promptTitle: session.promptTitle,
+      createdAt: session.createdAt || now,
+      updatedAt: now,
+    };
+
+    if (existingIndex >= 0) {
+      sessions[existingIndex] = {
+        ...sessions[existingIndex],
+        ...fullSession,
+        createdAt: sessions[existingIndex].createdAt,
+      };
+    } else {
+      sessions.unshift(fullSession);
+    }
+
+    setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+
+    // Track activity
+    if (fullSession.wordCount > 0) {
+      this.recordActivity({
+        wordsWritten: fullSession.wordCount,
+        writingSessionsCount: 1,
+      });
+    }
+
+    return fullSession;
+  },
+
+  deleteWritingSession(id: string): void {
+    const sessions = this.getWritingSessions().filter((s) => s.id !== id);
+    setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+  },
+
+  // --- AI REVIEWS ---
+  getAIReviews(): AIReview[] {
+    return getStorage<AIReview[]>(STORAGE_KEYS.AI_REVIEWS, []);
+  },
+
+  getAIReviewBySessionId(sessionId: string): AIReview | null {
+    const reviews = this.getAIReviews();
+    return reviews.find((r) => r.sessionId === sessionId) || null;
+  },
+
+  saveAIReview(review: AIReview): void {
+    const reviews = this.getAIReviews();
+    const index = reviews.findIndex((r) => r.sessionId === review.sessionId);
+    if (index >= 0) {
+      reviews[index] = review;
+    } else {
+      reviews.unshift(review);
+    }
+    setStorage(STORAGE_KEYS.AI_REVIEWS, reviews);
+
+    // Mark session as having review
+    const session = this.getWritingSessionById(review.sessionId);
+    if (session) {
+      this.saveWritingSession({
+        ...session,
+        hasAiReview: true,
+      });
+    }
+  },
+
+  updateIssueStatus(
+    sessionId: string,
+    issueId: string,
+    status: "accepted" | "rejected" | "pending"
+  ): void {
+    const review = this.getAIReviewBySessionId(sessionId);
+    if (!review) return;
+
+    const issue = review.issues.find((i) => i.id === issueId);
+    if (issue) {
+      issue.status = status;
+      this.saveAIReview(review);
+    }
+  },
+
+  // --- VOCABULARY / WORD GARDEN ---
+  getVocabulary(): VocabularyEntry[] {
+    const list = getStorage<VocabularyEntry[]>(STORAGE_KEYS.VOCABULARY, []);
+    return list.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  getVocabularyById(id: string): VocabularyEntry | null {
+    const list = this.getVocabulary();
+    return list.find((v) => v.id === id) || null;
+  },
+
+  saveVocabulary(entry: Omit<VocabularyEntry, "id" | "createdAt" | "reviewCount"> & { id?: string }): VocabularyEntry {
+    const list = this.getVocabulary();
+    const existingIndex = entry.id ? list.findIndex((v) => v.id === entry.id) : -1;
+    const now = new Date().toISOString();
+
+    const fullEntry: VocabularyEntry = {
+      id: entry.id || `vocab-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      word: entry.word.trim().toLowerCase(),
+      partOfSpeech: entry.partOfSpeech || "noun",
+      phonetic: entry.phonetic,
+      definition: entry.definition,
+      exampleSentence: entry.exampleSentence,
+      contextualNuance: entry.contextualNuance,
+      sourceContext: entry.sourceContext,
+      sourceType: entry.sourceType || "manual_search",
+      status: entry.status || "learning",
+      reviewCount: 0,
+      createdAt: now,
+      lastReviewedAt: entry.lastReviewedAt,
+    };
+
+    // check if word already exists by lowercased word
+    const duplicateIndex = list.findIndex(
+      (v) => v.word.toLowerCase() === fullEntry.word && v.id !== fullEntry.id
+    );
+
+    if (duplicateIndex >= 0) {
+      list[duplicateIndex] = {
+        ...list[duplicateIndex],
+        ...fullEntry,
+        id: list[duplicateIndex].id,
+        createdAt: list[duplicateIndex].createdAt,
+      };
+      setStorage(STORAGE_KEYS.VOCABULARY, list);
+      return list[duplicateIndex];
+    }
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = {
+        ...list[existingIndex],
+        ...fullEntry,
+        createdAt: list[existingIndex].createdAt,
+      };
+    } else {
+      list.unshift(fullEntry);
+    }
+
+    setStorage(STORAGE_KEYS.VOCABULARY, list);
+    return fullEntry;
+  },
+
+  updateVocabularyStatus(id: string, status: VocabularyEntry["status"]): void {
+    const list = this.getVocabulary();
+    const entry = list.find((v) => v.id === id);
+    if (entry) {
+      entry.status = status;
+      entry.lastReviewedAt = new Date().toISOString();
+      entry.reviewCount += 1;
+      setStorage(STORAGE_KEYS.VOCABULARY, list);
+
+      this.recordActivity({ vocabReviewed: 1 });
+    }
+  },
+
+  deleteVocabulary(id: string): void {
+    const list = this.getVocabulary().filter((v) => v.id !== id);
+    setStorage(STORAGE_KEYS.VOCABULARY, list);
+  },
+
+  // --- TWO-MINUTE SPARKS ---
+  getSparks(): TwoMinuteSpark[] {
+    const sparks = getStorage<TwoMinuteSpark[]>(STORAGE_KEYS.SPARKS, []);
+    return sparks.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  },
+
+  saveSpark(spark: Omit<TwoMinuteSpark, "id" | "createdAt">): TwoMinuteSpark {
+    const sparks = this.getSparks();
+    const now = new Date().toISOString();
+    const fullSpark: TwoMinuteSpark = {
+      ...spark,
+      id: `spark-${Date.now()}`,
+      createdAt: now,
+    };
+
+    sparks.unshift(fullSpark);
+    setStorage(STORAGE_KEYS.SPARKS, sparks);
+
+    // Record activity and maintain streak
+    this.recordActivity({
+      wordsWritten: fullSpark.wordCount,
+      sparksCompleted: 1,
+    });
+
+    // Optional save to writing journal
+    if (spark.savedToJournal) {
+      this.saveWritingSession({
+        id: `session-from-${fullSpark.id}`,
+        title: `Spark: ${spark.taskCategory.replace(/_/g, " ")}`,
+        content: spark.responseText,
+        mood: "reflective",
+        format: "paragraph",
+        wordCount: spark.wordCount,
+        durationSeconds: spark.durationSeconds,
+        status: "published",
+        hasAiReview: false,
+      });
+    }
+
+    return fullSpark;
+  },
+
+  // --- READING HISTORY ---
+  getReadingHistory(): ReadingHistoryItem[] {
+    return getStorage<ReadingHistoryItem[]>(STORAGE_KEYS.READING_HISTORY, []);
+  },
+
+  getReadingItem(resourceId: string): ReadingHistoryItem | null {
+    const items = this.getReadingHistory();
+    return items.find((i) => i.resourceId === resourceId) || null;
+  },
+
+  saveReadingProgress(
+    progress: Partial<ReadingHistoryItem> & { resourceId: string }
+  ): ReadingHistoryItem {
+    const history = this.getReadingHistory();
+    const index = history.findIndex((h) => h.resourceId === progress.resourceId);
+    const now = new Date().toISOString();
+
+    const fullItem: ReadingHistoryItem = {
+      id: progress.id || `read-hist-${Date.now()}`,
+      resourceId: progress.resourceId,
+      isCompleted: progress.isCompleted ?? false,
+      readDurationSeconds: progress.readDurationSeconds || 0,
+      comprehensionScore: progress.comprehensionScore,
+      notes: progress.notes || "",
+      savedForLater: progress.savedForLater ?? false,
+      lastReadAt: now,
+    };
+
+    if (index >= 0) {
+      history[index] = { ...history[index], ...fullItem };
+    } else {
+      history.unshift(fullItem);
+    }
+
+    setStorage(STORAGE_KEYS.READING_HISTORY, history);
+
+    if (fullItem.isCompleted) {
+      this.recordActivity({ readingsCompleted: 1 });
+    }
+
+    return fullItem;
+  },
+
+  // --- DAILY ACTIVITIES & STREAKS ---
+  getDailyActivities(): DailyActivity[] {
+    const acts = getStorage<DailyActivity[]>(STORAGE_KEYS.DAILY_ACTIVITIES, []);
+    return acts.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  },
+
+  recordActivity(delta: {
+    wordsWritten?: number;
+    writingSessionsCount?: number;
+    sparksCompleted?: number;
+    readingsCompleted?: number;
+    vocabReviewed?: number;
+  }): DailyActivity {
+    const activities = this.getDailyActivities();
+    const today = getTodayKey();
+    const existingIndex = activities.findIndex((a) => a.date === today);
+
+    let current = existingIndex >= 0 ? activities[existingIndex] : null;
+
+    if (!current) {
+      current = {
+        date: today,
+        wordsWritten: 0,
+        writingSessionsCount: 0,
+        sparksCompleted: 0,
+        readingsCompleted: 0,
+        vocabReviewed: 0,
+        streakCount: 1,
+      };
+      activities.unshift(current);
+    }
+
+    if (delta.wordsWritten) current.wordsWritten += delta.wordsWritten;
+    if (delta.writingSessionsCount)
+      current.writingSessionsCount += delta.writingSessionsCount;
+    if (delta.sparksCompleted) current.sparksCompleted += delta.sparksCompleted;
+    if (delta.readingsCompleted) current.readingsCompleted += delta.readingsCompleted;
+    if (delta.vocabReviewed) current.vocabReviewed += delta.vocabReviewed;
+
+    // Recalculate streak
+    current.streakCount = this.calculateStreak(activities);
+
+    setStorage(STORAGE_KEYS.DAILY_ACTIVITIES, activities);
+    return current;
+  },
+
+  calculateStreak(activities: DailyActivity[]): number {
+    if (activities.length === 0) return 0;
+
+    const todayStr = getTodayKey();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
+
+    // Sorted descending by date
+    const sorted = [...activities].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    const hasToday = sorted.some(
+      (a) =>
+        a.date === todayStr &&
+        (a.sparksCompleted > 0 || a.writingSessionsCount > 0 || a.wordsWritten > 0)
+    );
+    const hasYesterday = sorted.some(
+      (a) =>
+        a.date === yesterdayStr &&
+        (a.sparksCompleted > 0 || a.writingSessionsCount > 0 || a.wordsWritten > 0)
+    );
+
+    if (!hasToday && !hasYesterday) {
+      return 0; // Streak broken or no activity
+    }
+
+    let streak = 0;
+    let checkDate = new Date();
+    if (!hasToday) {
+      checkDate = yesterday;
+    }
+
+    while (true) {
+      const dateKey = checkDate.toISOString().split("T")[0];
+      const match = sorted.find(
+        (a) =>
+          a.date === dateKey &&
+          (a.sparksCompleted > 0 || a.writingSessionsCount > 0 || a.wordsWritten > 0)
+      );
+
+      if (match) {
+        streak += 1;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  },
+
+  // --- MISTAKE PROFILE ANALYSIS ---
+  getMistakeProfile(): MistakePattern[] {
+    const reviews = this.getAIReviews();
+    const issues = reviews.flatMap((r) => r.issues || []);
+
+    if (issues.length === 0) {
+      return [];
+    }
+
+    const counts: Record<IssueCategory, { count: number; examples: string[] }> = {} as any;
+
+    issues.forEach((issue) => {
+      const cat = issue.category;
+      if (!counts[cat]) {
+        counts[cat] = { count: 0, examples: [] };
+      }
+      counts[cat].count += 1;
+      if (counts[cat].examples.length < 3 && issue.originalExcerpt) {
+        counts[cat].examples.push(issue.originalExcerpt);
+      }
+    });
+
+    const patterns: MistakePattern[] = Object.entries(counts).map(([catKey, data]) => {
+      const cat = catKey as IssueCategory;
+      const meta = MISTAKE_RULES_CATALOG[cat] || {
+        label: cat,
+        explanation: "Grammatical or stylistic habit to monitor.",
+        rule: "Review and refine.",
+      };
+
+      const freq: MistakePattern["frequency"] =
+        data.count >= 4 ? "recurring" : data.count >= 2 ? "occasional" : "rare";
+
+      return {
+        category: cat,
+        categoryLabel: meta.label,
+        count: data.count,
+        frequency: freq,
+        explanation: meta.explanation,
+        typicalRule: meta.rule,
+        recentExamples: data.examples,
+      };
+    });
+
+    return patterns.sort((a, b) => b.count - a.count);
+  },
+
+  // --- OVERALL PROGRESS METRICS ---
+  getProgressSummary() {
+    const sessions = this.getWritingSessions();
+    const sparks = this.getSparks();
+    const vocab = this.getVocabulary();
+    const reading = this.getReadingHistory();
+    const activities = this.getDailyActivities();
+
+    const totalWords =
+      sessions.reduce((acc, s) => acc + (s.wordCount || 0), 0) +
+      sparks.reduce((acc, sp) => acc + (sp.wordCount || 0), 0);
+
+    const activeDaysCount = activities.filter(
+      (a) => a.wordsWritten > 0 || a.sparksCompleted > 0 || a.readingsCompleted > 0
+    ).length;
+
+    const streak = this.calculateStreak(activities);
+
+    const masteredVocab = vocab.filter((v) => v.status === "mastered").length;
+    const learningVocab = vocab.filter((v) => v.status === "learning").length;
+    const completedReadings = reading.filter((r) => r.isCompleted).length;
+
+    return {
+      totalWords,
+      totalSessions: sessions.length,
+      totalSparks: sparks.length,
+      activeDaysCount,
+      streak,
+      vocabTotal: vocab.length,
+      vocabMastered: masteredVocab,
+      vocabLearning: learningVocab,
+      completedReadings,
+    };
+  },
+
+  clearAllUserData(): void {
+    memoryStorage = {};
+    if (typeof window !== "undefined") {
+      Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
+    }
+  },
+};
