@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { hybridStore } from "./hybridStore";
+import { runLinguisticAnalysis } from "@/lib/ai/companionEngine";
 
 describe("hybridStore", () => {
   beforeEach(() => {
@@ -244,6 +245,93 @@ describe("hybridStore", () => {
     expect(unFavResult).toBe(false);
     expect(hybridStore.getVocabularyById(targetWord.id)?.isFavorite).toBe(false);
   });
+
+  it("manages Little Plans task notebook lifecycle", () => {
+    // 1. Initial seeded plans
+    const initialPlans = hybridStore.getPlans();
+    expect(initialPlans.length).toBeGreaterThanOrEqual(3);
+
+    // 2. Create new plan
+    const newPlan = hybridStore.savePlan({
+      title: "Compose essay on November light",
+      notes: "Focus on afternoon reflections and long shadows.",
+      dueDate: "2026-11-05",
+      priority: "high",
+      subtasks: [
+        { id: "sub-1", text: "Draft opening scene", completed: false },
+        { id: "sub-2", text: "Review rhythm with Companion", completed: false },
+      ],
+      recurring: "weekly",
+      linkedItem: {
+        type: "document",
+        id: "doc-123",
+        title: "November Light",
+      },
+    });
+
+    expect(newPlan.id).toBeDefined();
+    expect(newPlan.title).toBe("Compose essay on November light");
+    expect(newPlan.completed).toBe(false);
+
+    // 3. Toggle completion
+    const completed = hybridStore.togglePlan(newPlan.id);
+    expect(completed).toBe(true);
+    expect(hybridStore.getPlanById(newPlan.id)?.completed).toBe(true);
+
+    // 4. Toggle subtask
+    const subCompleted = hybridStore.toggleSubtask(newPlan.id, "sub-1");
+    expect(subCompleted).toBe(true);
+    expect(hybridStore.getPlanById(newPlan.id)?.subtasks[0].completed).toBe(true);
+
+    // 5. Delete plan
+    hybridStore.deletePlan(newPlan.id);
+    expect(hybridStore.getPlanById(newPlan.id)).toBeNull();
+  });
+
+  it("supports document metadata, document types, and favorites in Writing Studio", () => {
+    const doc = hybridStore.saveWritingSession({
+      id: "doc-short-story",
+      title: "The Bell at Dunwich",
+      content: "The light had already begun to recede along the shingle beach.",
+      documentType: "short_story",
+      format: "short_story",
+      durationSeconds: 300,
+    });
+
+    expect(doc.id).toBe("doc-short-story");
+    expect(doc.documentType).toBe("short_story");
+    expect(doc.wordCount).toBe(11);
+
+    // Toggle favorite
+    expect(doc.isFavorite).toBeFalsy();
+    const fav = hybridStore.toggleFavoriteDocument("doc-short-story");
+    expect(fav).toBe(true);
+    expect(hybridStore.getWritingSessionById("doc-short-story")?.isFavorite).toBe(true);
+
+    // Delete
+    hybridStore.deleteWritingSession("doc-short-story");
+    expect(hybridStore.getWritingSessionById("doc-short-story")).toBeNull();
+  });
+
+  it("analyzes prose with Writing Companion linguistic engine", () => {
+    const sampleText = "The author was conceted and they was using wordy phrases in order to impress.";
+
+    // 1. Fix grammar: catches 'conceted' and 'they was'
+    const grammarRes = runLinguisticAnalysis("fix_grammar", "Test", sampleText);
+    expect(grammarRes.suggestions.length).toBeGreaterThanOrEqual(2);
+    expect(grammarRes.suggestions.some((s) => s.suggestedCorrection === "conceited")).toBe(true);
+    expect(grammarRes.suggestions.some((s) => s.suggestedCorrection === "they were")).toBe(true);
+
+    // 2. Improve flow: catches 'in order to' -> 'to'
+    const flowRes = runLinguisticAnalysis("improve_flow", "Test", sampleText);
+    expect(flowRes.suggestions.some((s) => s.originalText.toLowerCase() === "in order to")).toBe(true);
+
+    // 3. Find better words
+    const vocabText = "It was very beautiful and nice weather outside.";
+    const vocabRes = runLinguisticAnalysis("find_better_words", "Test", vocabText);
+    expect(vocabRes.suggestions.some((s) => s.originalText.toLowerCase() === "very beautiful")).toBe(true);
+  });
 });
+
 
 

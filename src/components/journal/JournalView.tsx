@@ -35,6 +35,7 @@ import {
   Sliders,
   Heart,
 } from "lucide-react";
+import { WritingCompanionPanel } from "@/components/writing/WritingCompanionPanel";
 
 export function JournalView() {
   const searchParams = useSearchParams();
@@ -65,6 +66,7 @@ export function JournalView() {
   const [newTagInput, setNewTagInput] = useState("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [showCompanion, setShowCompanion] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [showInspiration, setShowInspiration] = useState(false);
 
@@ -422,6 +424,50 @@ export function JournalView() {
                   </div>
                 </div>
 
+                {/* Quick Date Range Presets */}
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <span className="text-[10px] text-[var(--text-muted)]">Presets:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const weekAgo = new Date();
+                      weekAgo.setDate(now.getDate() - 7);
+                      setStartDate(weekAgo.toISOString().split("T")[0]);
+                      setEndDate(now.toISOString().split("T")[0]);
+                    }}
+                    className="px-2 py-0.5 rounded border border-[var(--border-warm)] bg-[var(--bg-paper)] text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                  >
+                    This Week
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const monthAgo = new Date();
+                      monthAgo.setMonth(now.getMonth() - 1);
+                      setStartDate(monthAgo.toISOString().split("T")[0]);
+                      setEndDate(now.toISOString().split("T")[0]);
+                    }}
+                    className="px-2 py-0.5 rounded border border-[var(--border-warm)] bg-[var(--bg-paper)] text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                  >
+                    This Month
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const thirtyAgo = new Date();
+                      thirtyAgo.setDate(now.getDate() - 30);
+                      setStartDate(thirtyAgo.toISOString().split("T")[0]);
+                      setEndDate(now.toISOString().split("T")[0]);
+                    }}
+                    className="px-2 py-0.5 rounded border border-[var(--border-warm)] bg-[var(--bg-paper)] text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                  >
+                    Last 30 Days
+                  </button>
+                </div>
+
                 {/* Reset Filters */}
                 {hasActiveFilters && (
                   <button
@@ -651,6 +697,21 @@ export function JournalView() {
               <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
             </button>
 
+            {/* Writing Companion Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowCompanion(!showCompanion)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-xs ${
+                showCompanion
+                  ? "bg-[var(--accent-sage)] text-white"
+                  : "bg-[var(--bg-sage-surface)] text-[var(--accent-olive)] border border-[var(--accent-sage)]/30 hover:bg-[var(--accent-sage)] hover:text-white"
+              }`}
+              title="Open Writing Companion for this diary entry"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Companion</span>
+            </button>
+
             {/* Full-screen focus mode */}
             <button
               type="button"
@@ -804,6 +865,16 @@ export function JournalView() {
           </div>
         </div>
       </div>
+
+      {/* Writing Companion Side Panel */}
+      <WritingCompanionPanel
+        currentText={body}
+        documentTitle={title || "Journal Entry"}
+        documentType="diary_entry"
+        isOpen={showCompanion}
+        onClose={() => setShowCompanion(false)}
+        onApplyChange={(newContent) => setBody(newContent)}
+      />
     </div>
   );
 }

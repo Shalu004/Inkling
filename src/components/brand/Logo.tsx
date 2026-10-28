@@ -31,18 +31,18 @@ export function FeatherIcon({
       {/* Central quill spine / ink stroke */}
       <path
         d="M6 31C11.5 25 18 17 29 5C26 14 20 22 13 28L6 31Z"
-        fill={monochrome ? "currentColor" : "#332F29"}
+        fill={monochrome ? "currentColor" : "var(--text-main)"}
       />
       {/* Upper feather vane with organic curvature */}
       <path
         d="M29 5C27 9.5 22.5 13.5 17 15C18.5 12 21 8.5 25 6L29 5Z"
-        fill={monochrome ? "currentColor" : "#65745A"}
+        fill={monochrome ? "currentColor" : "var(--accent-sage)"}
         fillOpacity="0.9"
       />
       {/* Lower subtle accent vane */}
       <path
         d="M19 19C15 22 10.5 24 7 25C9 22.5 12.5 20 16 18L19 19Z"
-        fill={monochrome ? "currentColor" : "#485641"}
+        fill={monochrome ? "currentColor" : "var(--accent-olive)"}
         fillOpacity="0.8"
       />
       {/* Ink-nib tip touch */}
@@ -50,7 +50,7 @@ export function FeatherIcon({
         cx="5.5"
         cy="31.5"
         r="1.6"
-        fill={monochrome ? "currentColor" : "#754650"}
+        fill={monochrome ? "currentColor" : "var(--creative-ink)"}
       />
     </svg>
   );
@@ -80,12 +80,12 @@ export function Logo({
       {showWordmark && (
         <div className="flex flex-col">
           <span
-            className={`font-literary font-semibold tracking-tight text-[#332F29] transition-colors group-hover:text-[#65745A] leading-tight ${current.text}`}
+            className={`font-literary font-semibold tracking-tight text-[var(--text-main)] transition-colors group-hover:text-[var(--accent-sage)] leading-tight ${current.text}`}
           >
             Inkling
           </span>
           <span
-            className={`font-handwritten tracking-wide text-[#777267] italic -mt-0.5 ${current.tagline}`}
+            className={`font-handwritten tracking-wide text-[var(--text-muted)] italic -mt-0.5 ${current.tagline}`}
           >
             thoughts becoming words
           </span>

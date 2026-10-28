@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Palette,
   Check,
+  ListTodo,
 } from "lucide-react";
 import { ThemeType } from "@/types";
 import { hybridStore } from "@/lib/store/hybridStore";
@@ -58,6 +59,7 @@ function SidebarContent({ className = "" }: SidebarProps) {
     { href: "/", label: "Home", icon: Home },
     { href: "/journal", label: "My Journal", icon: BookHeart, badge: "Diary" },
     { href: "/write", label: "Write", icon: PenTool },
+    { href: "/plans", label: "Little Plans", icon: ListTodo },
     { href: "/read", label: "Reading Nook", icon: BookMarked },
     { href: "/library", label: "My Library", icon: Library },
     { href: "/explore", label: "Explore & Discover", icon: Compass },

@@ -82,6 +82,18 @@ export interface WritingPrompt {
   reasonForRecommendation?: string;
 }
 
+export type DocumentType =
+  | "article_essay"
+  | "short_story"
+  | "novel_chapter"
+  | "poetry"
+  | "personal_reflection"
+  | "diary_entry"
+  | "letter"
+  | "book_review"
+  | "script_dialogue"
+  | "blank_document";
+
 export interface WritingSession {
   id: string;
   userId?: string;
@@ -91,12 +103,98 @@ export interface WritingSession {
   content: string;
   mood?: MoodType;
   format: WritingFormat;
+  documentType?: DocumentType;
+  isFavorite?: boolean;
+  tags?: string[];
+  authorNote?: string;
   wordCount: number;
   durationSeconds: number;
   status: "draft" | "published" | "archived";
   hasAiReview: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export type WritingCompanionAction =
+  | "check_all"
+  | "fix_grammar"
+  | "improve_flow"
+  | "find_better_words"
+  | "explain_mistake"
+  | "review_entry";
+
+export interface CompanionSuggestion {
+  id: string;
+  originalText: string;
+  startIndex?: number;
+  endIndex?: number;
+  suggestedCorrection: string;
+  category: IssueCategory | "style" | "redundancy" | "word_choice";
+  explanation: string;
+  isStylistic: boolean;
+  alternatives?: string[];
+  confidence?: "high" | "moderate" | "creative_choice";
+  status: "pending" | "applied" | "ignored";
+}
+
+export interface CompanionAnalysisResult {
+  action: WritingCompanionAction;
+  summary: string;
+  suggestions: CompanionSuggestion[];
+  provider: "gemini" | "heuristic_engine";
+  timestamp: string;
+}
+
+export interface LittlePlanSubtask {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface LittlePlanTask {
+  id: string;
+  title: string;
+  notes?: string;
+  dueDate?: string; // YYYY-MM-DD
+  dueTime?: string;
+  completed: boolean;
+  completedAt?: string;
+  priority: "low" | "medium" | "high";
+  subtasks: LittlePlanSubtask[];
+  reminder?: string;
+  recurring?: "none" | "daily" | "weekly" | "monthly";
+  linkedItem?: {
+    type: "journal" | "reading" | "document";
+    id: string;
+    title: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DictionaryMeaning {
+  partOfSpeech: string;
+  definitions: Array<{
+    definition: string;
+    example?: string;
+    synonyms?: string[];
+    antonyms?: string[];
+  }>;
+}
+
+export interface DictionaryLookupResult {
+  found: boolean;
+  word: string;
+  phonetic?: string;
+  audioUrl?: string;
+  meanings: DictionaryMeaning[];
+  synonyms: string[];
+  antonyms: string[];
+  nuancedDistinction?: string;
+  etymology?: string;
+  suggestions?: string[]; // Spelling suggestions if not found
+  source: "free_dictionary_api" | "curated_lexicon" | "spelling_service";
+  isAiGenerated?: boolean;
 }
 
 export interface WritingIssue {

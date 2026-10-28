@@ -79,16 +79,20 @@ export function WordGardenView() {
     }
   };
 
-  const handleLookup = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!lookupQuery.trim()) return;
+  const handleLookup = async (overrideWord?: string) => {
+    const wordToSearch = (overrideWord || lookupQuery).trim();
+    if (!wordToSearch) return;
+
+    if (overrideWord) {
+      setLookupQuery(overrideWord);
+    }
 
     setIsLookingUp(true);
     setLookupError(null);
     setLookupResult(null);
 
     try {
-      const res = await fetch(`/api/dictionary?word=${encodeURIComponent(lookupQuery.trim())}`);
+      const res = await fetch(`/api/dictionary?word=${encodeURIComponent(wordToSearch)}`);
       const data = await res.json();
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Word not found in dictionary");
@@ -102,14 +106,22 @@ export function WordGardenView() {
   };
 
   const handleAddLookupToGarden = () => {
-    if (!lookupResult) return;
+    if (!lookupResult || !lookupResult.found) return;
+
+    const firstMeaning = lookupResult.meanings?.[0];
+    const firstDef = firstMeaning?.definitions?.[0];
+
     hybridStore.saveVocabulary({
       word: lookupResult.word,
-      partOfSpeech: lookupResult.partOfSpeech || "noun",
+      partOfSpeech: firstMeaning?.partOfSpeech || lookupResult.partOfSpeech || "noun",
       phonetic: lookupResult.phonetic,
-      definition: lookupResult.definition,
-      exampleSentence: lookupResult.exampleSentence,
-      contextualNuance: lookupResult.nuances,
+      definition:
+        firstDef?.definition || lookupResult.definition || "Definition from literary lexicon.",
+      exampleSentence:
+        firstDef?.example ||
+        lookupResult.exampleSentence ||
+        `An evocative sentence using "${lookupResult.word}".`,
+      contextualNuance: lookupResult.nuancedDistinction || lookupResult.nuances,
       synonyms: lookupResult.synonyms || [],
       sourceType: "manual_search",
       status: "learning",
@@ -289,14 +301,20 @@ export function WordGardenView() {
 
       {/* DICTIONARY LOOKUP & EXPLORATION BAR */}
       <div className="p-6 rounded-2xl border border-warm-border bg-sage-surface/40 space-y-4">
-        <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLookup();
+          }}
+          className="flex flex-col sm:flex-row gap-2"
+        >
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-secondary" />
             <input
               type="text"
               value={lookupQuery}
               onChange={(e) => setLookupQuery(e.target.value)}
-              placeholder="Search dictionary for meaning and literary nuance (e.g. luminescent, discernment, evocative)..."
+              placeholder="Search dictionary for meaning and literary nuance (e.g. luminescent, conceited, evocative)..."
               className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-warm-border bg-paper text-sm text-ink-primary placeholder:text-ink-secondary/60 focus:outline-none focus:border-primary-sage"
             />
           </div>
@@ -314,44 +332,117 @@ export function WordGardenView() {
         {/* Live Lookup Result Card */}
         {lookupResult && (
           <div className="p-5 rounded-xl bg-paper border border-warm-border space-y-3 shadow-xs">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="font-literary text-2xl font-bold text-ink-primary">
-                    {lookupResult.word}
-                  </h3>
-                  {lookupResult.phonetic && (
-                    <span className="text-xs font-mono text-ink-secondary">
-                      {lookupResult.phonetic}
-                    </span>
-                  )}
-                  <span className="text-xs italic text-ink-secondary">
-                    ({lookupResult.partOfSpeech})
+            {!lookupResult.found ? (
+              /* Spelling Suggestion Banner */
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-amber-900 font-medium text-xs">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span>
+                    Word "<strong>{lookupResult.word}</strong>" was not found in the dictionary.
                   </span>
                 </div>
-                <p className="font-literary text-base text-ink-primary mt-1">
-                  {lookupResult.definition}
-                </p>
+
+                {lookupResult.suggestions && lookupResult.suggestions.length > 0 ? (
+                  <div className="space-y-1.5 p-3 rounded-lg bg-amber-50/70 border border-amber-200/80">
+                    <span className="text-[11px] font-semibold text-amber-950 uppercase tracking-wider">
+                      Did you mean:
+                    </span>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {lookupResult.suggestions.map((suggestion: string) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => handleLookup(suggestion)}
+                          className="px-3 py-1 rounded-full bg-paper border border-amber-300 text-xs font-semibold text-amber-950 hover:bg-amber-100 hover:border-amber-400 transition-colors shadow-2xs"
+                        >
+                          {suggestion} →
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs text-ink-secondary italic">
+                    No verified dictionary definition or spelling suggestion available.
+                  </p>
+                )}
               </div>
+            ) : (
+              /* Authentic Found Definition */
+              <>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex flex-wrap items-baseline gap-2">
+                      <h3 className="font-literary text-2xl font-bold text-ink-primary">
+                        {lookupResult.word}
+                      </h3>
+                      {lookupResult.phonetic && (
+                        <span className="text-xs font-mono text-ink-secondary">
+                          {lookupResult.phonetic}
+                        </span>
+                      )}
+                      {lookupResult.meanings?.[0]?.partOfSpeech && (
+                        <span className="text-xs italic text-ink-secondary">
+                          ({lookupResult.meanings[0].partOfSpeech})
+                        </span>
+                      )}
+                    </div>
 
-              <button
-                onClick={handleAddLookupToGarden}
-                className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-primary-sage text-paper hover:bg-deep-olive transition-all"
-              >
-                <Plus className="w-3.5 h-3.5" /> Plant in Garden
-              </button>
-            </div>
+                    {/* Definitions */}
+                    <div className="mt-2 space-y-1.5">
+                      {(lookupResult.meanings || []).slice(0, 2).map((m: any, mIdx: number) => (
+                        <div key={mIdx} className="space-y-1">
+                          {lookupResult.meanings.length > 1 && (
+                            <span className="text-[10px] uppercase font-bold text-primary-sage">
+                              {m.partOfSpeech}
+                            </span>
+                          )}
+                          {(m.definitions || []).slice(0, 2).map((d: any, dIdx: number) => (
+                            <div key={dIdx} className="space-y-0.5">
+                              <p className="font-literary text-sm text-ink-primary">
+                                • {d.definition}
+                              </p>
+                              {d.example && (
+                                <p className="text-xs text-ink-secondary italic font-literary pl-3">
+                                  "{d.example}"
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-            {lookupResult.exampleSentence && (
-              <p className="text-xs text-ink-secondary italic font-literary">
-                "{lookupResult.exampleSentence}"
-              </p>
-            )}
+                  <button
+                    onClick={handleAddLookupToGarden}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-primary-sage text-paper hover:bg-deep-olive transition-all shrink-0 shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Plant in Garden
+                  </button>
+                </div>
 
-            {lookupResult.nuances && (
-              <div className="p-3 rounded-lg bg-sage-surface text-xs text-deep-olive border border-warm-border">
-                <strong>Nuance:</strong> {lookupResult.nuances}
-              </div>
+                {/* Synonyms */}
+                {lookupResult.synonyms && lookupResult.synonyms.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+                    <span className="text-[11px] text-ink-secondary font-medium">Synonyms:</span>
+                    {lookupResult.synonyms.slice(0, 6).map((syn: string) => (
+                      <span
+                        key={syn}
+                        className="px-2 py-0.5 rounded-full bg-sanctuary border border-warm-border text-[11px] text-ink-primary"
+                      >
+                        {syn}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Nuance distinction */}
+                {lookupResult.nuancedDistinction && (
+                  <div className="p-3 rounded-lg bg-sage-surface text-xs text-deep-olive border border-warm-border">
+                    <strong>Nuance:</strong> {lookupResult.nuancedDistinction}
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

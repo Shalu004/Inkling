@@ -15,6 +15,8 @@ import {
   JournalSearchFilters,
   JournalSearchResult,
   LiteraryQuote,
+  LittlePlanTask,
+  DocumentType,
 } from "@/types";
 import {
   MISTAKE_RULES_CATALOG,
@@ -38,6 +40,7 @@ const STORAGE_KEYS = {
   SAVED_PASSAGES: "inkling_saved_passages_v1",
   SAVED_QUOTES: "inkling_saved_quotes_v1",
   QUOTE_REFLECTIONS: "inkling_quote_reflections_v1",
+  LITTLE_PLANS: "inkling_little_plans_v1",
 };
 
 export const DEFAULT_READER_PREFERENCES: ReaderPreferences = {
@@ -153,6 +156,10 @@ export const hybridStore = {
       content: session.content || "",
       mood: session.mood,
       format: session.format || "reflective_essay",
+      documentType: session.documentType || (existingIndex >= 0 ? sessions[existingIndex].documentType : "article_essay"),
+      isFavorite: session.isFavorite ?? (existingIndex >= 0 ? sessions[existingIndex].isFavorite : false),
+      tags: session.tags || (existingIndex >= 0 ? sessions[existingIndex].tags : []),
+      authorNote: session.authorNote,
       wordCount: session.content
         ? session.content.trim().split(/\s+/).filter(Boolean).length
         : 0,
@@ -186,6 +193,16 @@ export const hybridStore = {
     }
 
     return fullSession;
+  },
+
+  toggleFavoriteDocument(id: string): boolean {
+    const sessions = this.getWritingSessions();
+    const s = sessions.find((item) => item.id === id);
+    if (!s) return false;
+    s.isFavorite = !s.isFavorite;
+    s.updatedAt = new Date().toISOString();
+    setStorage(STORAGE_KEYS.WRITING_SESSIONS, sessions);
+    return s.isFavorite;
   },
 
   deleteWritingSession(id: string): void {
@@ -402,6 +419,132 @@ export const hybridStore = {
     const map = this.getQuoteReflections();
     map[quoteId] = reflection;
     setStorage(STORAGE_KEYS.QUOTE_REFLECTIONS, map);
+  },
+
+  // --- LITTLE PLANS / MY DAY ---
+  getPlans(): LittlePlanTask[] {
+    const plans = getStorage<LittlePlanTask[]>(STORAGE_KEYS.LITTLE_PLANS, []);
+    if (plans.length === 0) {
+      const today = getTodayKey();
+      const initialPlans: LittlePlanTask[] = [
+        {
+          id: "plan-woolf",
+          title: "Read 15 pages of Virginia Woolf's To the Lighthouse",
+          notes: "Focus on Mrs. Ramsay's stream of consciousness and internal rhythm.",
+          dueDate: today,
+          completed: false,
+          priority: "high",
+          subtasks: [
+            { id: "sub-1", text: "Mark passages of notable interiority", completed: false },
+            { id: "sub-2", text: "Save favorite quote to sanctuary collection", completed: true },
+          ],
+          linkedItem: {
+            type: "reading",
+            id: "curated-woolf-lighthouse",
+            title: "To the Lighthouse",
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "plan-journal",
+          title: "Evening reflection: write on morning stillness",
+          notes: "Reflect on how the fog hung over the pines before dawn.",
+          dueDate: today,
+          completed: false,
+          priority: "medium",
+          subtasks: [],
+          linkedItem: {
+            type: "journal",
+            id: "journal-prompt",
+            title: "Morning Stillness",
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: "plan-vocab",
+          title: "Cultivate 2 new words in Word Garden",
+          notes: "Add personal example sentences for 'petrichor' and 'susurrus'.",
+          completed: true,
+          completedAt: new Date().toISOString(),
+          priority: "low",
+          subtasks: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+      setStorage(STORAGE_KEYS.LITTLE_PLANS, initialPlans);
+      return initialPlans;
+    }
+    return plans.sort((a, b) => {
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  },
+
+  getPlanById(id: string): LittlePlanTask | null {
+    return this.getPlans().find((p) => p.id === id) || null;
+  },
+
+  savePlan(task: Partial<LittlePlanTask> & { title: string }): LittlePlanTask {
+    const plans = this.getPlans();
+    const existingIndex = task.id ? plans.findIndex((p) => p.id === task.id) : -1;
+    const now = new Date().toISOString();
+
+    const fullTask: LittlePlanTask = {
+      id: task.id || `plan-${Date.now()}`,
+      title: task.title,
+      notes: task.notes || "",
+      dueDate: task.dueDate,
+      dueTime: task.dueTime,
+      completed: task.completed ?? false,
+      completedAt: task.completed ? (task.completedAt || now) : undefined,
+      priority: task.priority || "medium",
+      subtasks: task.subtasks || [],
+      reminder: task.reminder,
+      recurring: task.recurring || "none",
+      linkedItem: task.linkedItem,
+      createdAt: task.createdAt || now,
+      updatedAt: now,
+    };
+
+    if (existingIndex >= 0) {
+      plans[existingIndex] = { ...plans[existingIndex], ...fullTask };
+    } else {
+      plans.unshift(fullTask);
+    }
+
+    setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    return fullTask;
+  },
+
+  togglePlan(id: string): boolean {
+    const plans = this.getPlans();
+    const plan = plans.find((p) => p.id === id);
+    if (!plan) return false;
+    plan.completed = !plan.completed;
+    plan.completedAt = plan.completed ? new Date().toISOString() : undefined;
+    plan.updatedAt = new Date().toISOString();
+    setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    return plan.completed;
+  },
+
+  toggleSubtask(planId: string, subtaskId: string): boolean {
+    const plans = this.getPlans();
+    const plan = plans.find((p) => p.id === planId);
+    if (!plan) return false;
+    const sub = plan.subtasks.find((s) => s.id === subtaskId);
+    if (!sub) return false;
+    sub.completed = !sub.completed;
+    plan.updatedAt = new Date().toISOString();
+    setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
+    return sub.completed;
+  },
+
+  deletePlan(id: string): void {
+    const plans = this.getPlans().filter((p) => p.id !== id);
+    setStorage(STORAGE_KEYS.LITTLE_PLANS, plans);
   },
 
   // --- TWO-MINUTE SPARKS ---
