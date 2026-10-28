@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { newsreader, plusJakartaSans, caveat } from "./fonts";
+import { lora, inter, caveat } from "./fonts";
 import "./globals.css";
+import { AppShell } from "@/components/layout/AppShell";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -9,20 +10,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Inkling — Find your thoughts. Find your voice.",
+  title: "Inkling — Personal Literary Sanctuary & Journal",
   description:
-    "A personal, AI-powered writing and reading workspace. Discover your voice, master vocabulary, learn from your writing, and build a sustainable habit.",
+    "A cozy home library combined with a personal diary, reading nook, and thought garden.",
   keywords: [
-    "writing",
-    "reading",
-    "vocabulary",
     "journal",
-    "AI writing coach",
-    "habit tracker",
-    "daily spark",
-    "editorial",
+    "reading journal",
+    "diary",
+    "literary sanctuary",
+    "bookshelf",
+    "reading nook",
+    "writing",
+    "vocabulary",
   ],
-  authors: [{ name: "Inkling Team" }],
+  authors: [{ name: "Inkling Sanctuary" }],
 };
 
 export default function RootLayout({
@@ -33,10 +34,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${newsreader.variable} ${plusJakartaSans.variable} ${caveat.variable} h-full`}
+      className={`${lora.variable} ${inter.variable} ${caveat.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-parchment text-ink-primary font-sans antialiased selection:bg-coach-wash">
-        {children}
+      <body className="min-h-full flex flex-col bg-[#F5F0E6] text-[#332F29] font-sans antialiased selection:bg-[#D9DFCF]">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

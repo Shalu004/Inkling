@@ -1,4 +1,12 @@
-import { WritingPrompt, ReadingResource, MistakePattern, IssueCategory } from "@/types";
+import {
+  WritingPrompt,
+  ReadingResource,
+  MistakePattern,
+  IssueCategory,
+  BookItem,
+  LiteraryDiscovery,
+  JournalEntry,
+} from "@/types";
 
 export const CURATED_PROMPTS: WritingPrompt[] = [
   {
@@ -472,3 +480,312 @@ export const MISTAKE_RULES_CATALOG: Record<
     rule: "Use organic transitions ('Yet', 'Consequently', 'In retrospect', 'Meanwhile') to bridge intellectual shifts.",
   },
 };
+
+export const CURATED_BOOKS: BookItem[] = [
+  {
+    id: "book-woolf-lighthouse",
+    title: "To the Lighthouse",
+    author: "Virginia Woolf",
+    genre: "Modernist Literature",
+    status: "currently_reading",
+    progressPercent: 68,
+    rating: 5,
+    coverColor: "#65745A",
+    coverSubtitle: "A landmark exploration of time, memory, and maternal presence.",
+    estimatedPages: 209,
+    currentPage: 142,
+    startedDate: "2026-10-14",
+    personalNotes:
+      "The passage of time in Part II ('Time Passes') is breathtaking—the house falling into quiet decay while the seasons pass outside without human witness.",
+    favoriteQuotes: [
+      "What is the meaning of life? That was all—a simple question; one that tended to close in on one with years. The great revelation had never come. The great revelation perhaps never did come. Instead there were little daily miracles, illuminations, matches struck unexpectedly in the dark.",
+      "She felt an extraordinary elation: she was an eye; she was a perception.",
+    ],
+    sourceLink: "https://gutenberg.net.au/ebooks01/0100101.txt",
+  },
+  {
+    id: "book-orwell-essays",
+    title: "Why I Write & Collected Essays",
+    author: "George Orwell",
+    genre: "Literary Essays",
+    status: "finished",
+    progressPercent: 100,
+    rating: 5,
+    coverColor: "#485641",
+    coverSubtitle: "On language, truth, clarity, and political responsibility.",
+    estimatedPages: 192,
+    currentPage: 192,
+    startedDate: "2026-09-02",
+    finishedDate: "2026-09-18",
+    personalNotes:
+      "A masterclass in stripping prose of bureaucratic pretension. Whenever my writing feels bloated, reading Orwell recalibrates my ear.",
+    favoriteQuotes: [
+      "Good prose is like a windowpane.",
+      "If you simplify your English, you are freed from the worst follies of orthodoxy.",
+    ],
+    sourceLink: "https://www.orwellfoundation.com",
+  },
+  {
+    id: "book-emerson-essays",
+    title: "Self-Reliance and Selected Essays",
+    author: "Ralph Waldo Emerson",
+    genre: "Philosophy & Transcendentalism",
+    status: "favorite",
+    progressPercent: 100,
+    rating: 5,
+    coverColor: "#754650",
+    coverSubtitle: "The primacy of independent conviction over conformity.",
+    estimatedPages: 160,
+    currentPage: 160,
+    startedDate: "2026-08-10",
+    finishedDate: "2026-08-25",
+    personalNotes:
+      "A perpetual sanctuary book. Whenever self-doubt or the desire to imitate creeps in, opening Emerson feels like an invigorating gust of wind.",
+    favoriteQuotes: [
+      "Nothing is at last sacred but the integrity of your own mind.",
+      "Envy is ignorance; imitation is suicide.",
+      "Trust thyself: every heart vibrates to that iron string.",
+    ],
+    sourceLink: "https://www.gutenberg.org/ebooks/16643",
+  },
+  {
+    id: "book-rilke-poet",
+    title: "Letters to a Young Poet",
+    author: "Rainer Maria Rilke",
+    genre: "Epistolary & Poetics",
+    status: "favorite",
+    progressPercent: 100,
+    rating: 5,
+    coverColor: "#8C6D53",
+    coverSubtitle: "Ten letters on patience, solitary creation, and living questions.",
+    estimatedPages: 128,
+    currentPage: 128,
+    startedDate: "2026-07-04",
+    finishedDate: "2026-07-12",
+    personalNotes:
+      "Rilke's advice to live the questions rather than forcing immediate answers has become a cornerstone of my daily reflections.",
+    favoriteQuotes: [
+      "Be patient toward all that is unsolved in your heart and try to love the questions themselves, like locked rooms and like books that are now written in a very foreign tongue.",
+      "Your solitude will be a support and a home for you, even amid very unfamiliar circumstances, and from it you will find all your paths.",
+    ],
+    sourceLink: "https://www.gutenberg.org/ebooks/70742",
+  },
+  {
+    id: "book-austen-persuasion",
+    title: "Persuasion",
+    author: "Jane Austen",
+    genre: "Classic Fiction",
+    status: "want_to_read",
+    progressPercent: 0,
+    rating: undefined,
+    coverColor: "#3D724D",
+    coverSubtitle: "Austen's most mature and tender contemplation of second chances.",
+    estimatedPages: 248,
+    currentPage: 0,
+    personalNotes: "Recommended for its quiet psychological depth and autumn atmosphere.",
+    favoriteQuotes: [],
+    sourceLink: "https://www.gutenberg.org/ebooks/105",
+  },
+  {
+    id: "book-aurelius-meditations",
+    title: "Meditations",
+    author: "Marcus Aurelius",
+    genre: "Stoic Philosophy",
+    status: "currently_reading",
+    progressPercent: 42,
+    rating: 5,
+    coverColor: "#332F29",
+    coverSubtitle: "The private journal of Rome's philosopher emperor.",
+    estimatedPages: 256,
+    currentPage: 108,
+    startedDate: "2026-10-01",
+    personalNotes:
+      "Written solely for himself, with no intention of publication. You can feel the quiet honesty of someone reminding himself to be steadfast and humble.",
+    favoriteQuotes: [
+      "When you arise in the morning, think of what a precious privilege it is to be alive—to breathe, to think, to enjoy, to love.",
+      "You have power over your mind - not outside events. Realize this, and you will find strength.",
+    ],
+    sourceLink: "https://www.gutenberg.org/ebooks/2680",
+  },
+];
+
+export const CURATED_DISCOVERIES: LiteraryDiscovery[] = [
+  {
+    id: "disc-dickinson-hope",
+    title: "Hope is the thing with feathers",
+    author: "Emily Dickinson",
+    type: "poem",
+    source: "Complete Poems (1891)",
+    year: "1861",
+    mood: "reflective",
+    tags: ["Poetry", "Hope", "Perseverance"],
+    coverColor: "#65745A",
+    excerpt:
+      "“Hope” is the thing with feathers -\nThat perches in the soul -\nAnd sings the tune without the words -\nAnd never stops - at all -",
+    content: `“Hope” is the thing with feathers -
+That perches in the soul -
+And sings the tune without the words -
+And never stops - at all -
+
+And sweetest - in the Gale - is heard -
+And sore must be the storm -
+That could abash the little Bird
+That kept so many warm -
+
+I’ve heard it in the chillest land -
+And on the strangest Sea -
+Yet - never - in Extremity,
+It asked a crumb - of me.`,
+  },
+  {
+    id: "disc-rilke-longing",
+    title: "Go to the Limits of Your Longing",
+    author: "Rainer Maria Rilke",
+    type: "poem",
+    source: "Book of Hours",
+    year: "1905",
+    mood: "introspective",
+    tags: ["Poetry", "Transcendence", "Solitude"],
+    coverColor: "#754650",
+    excerpt:
+      "Let everything happen to you: beauty and terror.\nJust keep going. No feeling is final.\nDon’t lose your connection to me.",
+    content: `God speaks to each of us as he makes us,
+then walks with us silently out of the night.
+
+These are the words we dimly hear:
+You, sent out beyond your recall,
+go to the limits of your longing.
+Embody me.
+
+Flare up like flame
+and make big shadows I can move in.
+
+Let everything happen to you: beauty and terror.
+Just keep going. No feeling is final.
+Don’t lose your connection to me.
+
+Nearby is the country they call life.
+You will know it by its seriousness.
+
+Give me your hand.`,
+  },
+  {
+    id: "disc-keats-beauty",
+    title: "Ode on a Grecian Urn",
+    author: "John Keats",
+    type: "poem",
+    source: "Annals of the Fine Arts",
+    year: "1819",
+    mood: "creative",
+    tags: ["Poetry", "Beauty", "Art"],
+    coverColor: "#485641",
+    excerpt:
+      "“Beauty is truth, truth beauty,”—that is all\nYe know on earth, and all ye need to know.",
+    content: `Thou still unravish'd bride of quietness,
+Thou foster-child of silence and slow time,
+Sylvan historian, who canst thus express
+A flowery tale more sweetly than our rhyme...
+
+“Beauty is truth, truth beauty,”—that is all
+Ye know on earth, and all ye need to know.`,
+  },
+  {
+    id: "disc-woolf-room",
+    title: "A Room of One's Own (Excerpt)",
+    author: "Virginia Woolf",
+    type: "essay",
+    source: "Hogarth Press",
+    year: "1929",
+    mood: "curious",
+    tags: ["Essays", "Autonomy", "Writing"],
+    coverColor: "#65745A",
+    excerpt:
+      "A woman must have money and a room of her own if she is to write fiction; and that, as you will see, leaves the great problem of the true nature of woman and the true nature of fiction unsolved.",
+    content:
+      "A woman must have money and a room of her own if she is to write fiction; and that, as you will see, leaves the great problem of the true nature of woman and the true nature of fiction unsolved... Intellectual freedom depends upon material things. Poetry depends upon intellectual freedom.",
+  },
+  {
+    id: "disc-montaigne-books",
+    title: "Of Books",
+    author: "Michel de Montaigne",
+    type: "essay",
+    source: "Essays (Book II, Ch. 10)",
+    year: "1580",
+    mood: "calm",
+    tags: ["Reading", "Philosophy", "Sanctuary"],
+    coverColor: "#8C6D53",
+    excerpt:
+      "I do not search for books to teach me what I should believe, but to tell me what others have thought, that I may weigh it against my own mind.",
+    content:
+      "I make no doubt that I often happen to speak of things which are much better and more truly handled by those who are masters of the trade. This is merely an essay of my natural faculties, and not at all of acquired ones; and whoever shall take me for a schoolmaster, will find himself deceived.",
+  },
+  {
+    id: "disc-quote-woolf-desire",
+    title: "On the Daily Life",
+    author: "Virginia Woolf",
+    type: "quote",
+    source: "The Diary of Virginia Woolf",
+    year: "1928",
+    mood: "introspective",
+    tags: ["Quotation", "Diary", "Longing"],
+    coverColor: "#754650",
+    excerpt:
+      "“I have a deeply hidden and inarticulate desire for something beyond the daily life.”",
+  },
+  {
+    id: "disc-quote-oliver-life",
+    title: "The Summer Day",
+    author: "Mary Oliver",
+    type: "quote",
+    source: "House of Light",
+    year: "1990",
+    mood: "observant",
+    tags: ["Quotation", "Nature", "Wonder"],
+    coverColor: "#3D724D",
+    excerpt:
+      "“Tell me, what is it you plan to do with your one wild and precious life?”",
+  },
+];
+
+export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
+  {
+    id: "journal-entry-1",
+    title: "First light in the quiet room",
+    body: "There is a rare stillness that exists only before the kettle whistles and the street stirs. The desk is cool beneath my palms. Sitting here with a blank notebook feels less like starting a task and more like entering a sanctuary where no one demands an explanation.\n\nI noticed how the morning sun casts long, slanted rectangular shadows across the floorboards. It reminded me of Woolf's phrase—how good prose is an attempt to strike matches unexpectedly in the dark. For fifteen minutes, I did not think about deadlines or the noise outside. I simply watched the light arrive.",
+    date: "2026-10-27",
+    time: "07:15 AM",
+    mood: "calm",
+    tags: ["Morning", "Solitude", "Light"],
+    isFavorite: true,
+    weather: "Crisp autumn morning, pale sun",
+    createdAt: "2026-10-27T07:15:00Z",
+    updatedAt: "2026-10-27T07:35:00Z",
+  },
+  {
+    id: "journal-entry-2",
+    title: "The books waiting on the bedside shelf",
+    body: "Re-read Rilke's fourth letter tonight. His insistence that we must 'live the questions' rather than rushing toward answers brought an unexpected sense of relief. In a culture that demands immediate certainty, allowing an unfinished thought to sit patiently in a drawer feels like a quiet act of defiance.\n\nI underlined two lines in pencil: 'Your solitude will be a support and a home for you.' We carry our sanctuary inside us, provided we do not crowd it with other people's anxieties.",
+    date: "2026-10-25",
+    time: "09:40 PM",
+    mood: "reflective",
+    tags: ["Reading Notes", "Rilke", "Questions"],
+    isFavorite: true,
+    weather: "Rain tapping against the glass",
+    createdAt: "2026-10-25T21:40:00Z",
+    updatedAt: "2026-10-25T21:58:00Z",
+  },
+  {
+    id: "journal-entry-3",
+    title: "Walking through the autumn mist",
+    body: "An afternoon walk through the wet leaves. The air smelled of damp cedar and woodsmoke. For the first time in weeks, my thoughts were not running ahead of my feet. It is curious how walking slowly recalibrates the rhythm of sentences in your head—longer clauses, gentle pauses, room to breathe.",
+    date: "2026-10-22",
+    time: "04:30 PM",
+    mood: "observant",
+    tags: ["Walks", "Autumn", "Cadence"],
+    isFavorite: false,
+    weather: "Overcast with drifting mist",
+    createdAt: "2026-10-22T16:30:00Z",
+    updatedAt: "2026-10-22T16:45:00Z",
+  },
+];
+

@@ -1,15 +1,16 @@
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import React, { Suspense } from "react";
 import { ProgressView } from "@/components/progress/ProgressView";
 
 export default function ProgressPage() {
   return (
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <ProgressView />
-      </main>
-      <Footer />
-    </div>
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center p-12 text-[#777267] text-xs font-serif italic">
+          Reflecting on your journey...
+        </div>
+      }
+    >
+      <ProgressView />
+    </Suspense>
   );
 }

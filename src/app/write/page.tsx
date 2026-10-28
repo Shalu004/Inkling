@@ -2,8 +2,6 @@
 
 import React, { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 import { WritingEditor } from "@/components/writing/WritingEditor";
 import { hybridStore } from "@/lib/store/hybridStore";
 import { CURATED_PROMPTS } from "@/lib/curated/data";
@@ -38,20 +36,16 @@ function WritePageInner() {
 
   return (
     <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        {!loaded ? (
-          <div className="flex-1 flex items-center justify-center p-12 text-ink-secondary text-xs">
-            Opening writing workspace...
-          </div>
-        ) : (
-          <WritingEditor
-            initialSession={initialSession}
-            initialPrompt={initialPrompt}
-          />
-        )}
-      </main>
-      <Footer />
+      {!loaded ? (
+        <div className="flex-1 flex items-center justify-center p-12 text-[#777267] text-xs font-serif italic">
+          Opening writing workspace...
+        </div>
+      ) : (
+        <WritingEditor
+          initialSession={initialSession}
+          initialPrompt={initialPrompt}
+        />
+      )}
     </div>
   );
 }
@@ -60,7 +54,7 @@ export default function WritePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-parchment flex items-center justify-center text-xs text-ink-secondary">
+        <div className="flex-1 flex items-center justify-center p-12 text-[#777267] text-xs font-serif italic">
           Loading editor...
         </div>
       }

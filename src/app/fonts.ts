@@ -1,17 +1,17 @@
-import { Newsreader, Plus_Jakarta_Sans, Caveat } from "next/font/google";
+import { Lora, Inter, Caveat } from "next/font/google";
 
-export const newsreader = Newsreader({
+export const lora = Lora({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-newsreader",
+  variable: "--font-lora",
   display: "swap",
 });
 
-export const plusJakartaSans = Plus_Jakarta_Sans({
+export const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-plus-jakarta",
+  variable: "--font-inter",
   display: "swap",
 });
 

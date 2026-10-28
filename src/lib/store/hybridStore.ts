@@ -8,8 +8,10 @@ import {
   UserPreferences,
   MistakePattern,
   IssueCategory,
+  JournalEntry,
+  BookItem,
 } from "@/types";
-import { MISTAKE_RULES_CATALOG } from "@/lib/curated/data";
+import { MISTAKE_RULES_CATALOG, INITIAL_JOURNAL_ENTRIES, CURATED_BOOKS } from "@/lib/curated/data";
 
 const STORAGE_KEYS = {
   WRITING_SESSIONS: "inkling_writing_sessions_v1",
@@ -19,6 +21,8 @@ const STORAGE_KEYS = {
   READING_HISTORY: "inkling_reading_history_v1",
   DAILY_ACTIVITIES: "inkling_daily_activities_v1",
   PREFERENCES: "inkling_user_preferences_v1",
+  JOURNAL_ENTRIES: "inkling_journal_entries_v2",
+  LIBRARY_BOOKS: "inkling_library_books_v2",
 };
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
@@ -532,6 +536,161 @@ export const hybridStore = {
       vocabLearning: learningVocab,
       completedReadings,
     };
+  },
+
+  // --- MY JOURNAL (PERSONAL DIARY) ---
+  getJournalEntries(): JournalEntry[] {
+    const list = getStorage<JournalEntry[]>(STORAGE_KEYS.JOURNAL_ENTRIES, []);
+    if (list.length === 0) {
+      // Seed with warm initial entries
+      setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, INITIAL_JOURNAL_ENTRIES);
+      return INITIAL_JOURNAL_ENTRIES;
+    }
+    return list.sort(
+      (a, b) => new Date(b.date + "T" + (b.time || "00:00")).getTime() - new Date(a.date + "T" + (a.time || "00:00")).getTime()
+    );
+  },
+
+  getJournalEntryById(id: string): JournalEntry | null {
+    const list = this.getJournalEntries();
+    return list.find((e) => e.id === id) || null;
+  },
+
+  saveJournalEntry(entry: Partial<JournalEntry> & { id: string }): JournalEntry {
+    const list = this.getJournalEntries();
+    const existingIndex = list.findIndex((e) => e.id === entry.id);
+    const now = new Date().toISOString();
+    const today = now.split("T")[0];
+
+    const fullEntry: JournalEntry = {
+      id: entry.id,
+      title: entry.title || "Untitled Entry",
+      body: entry.body || "",
+      date: entry.date || today,
+      time: entry.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      mood: entry.mood,
+      tags: entry.tags || [],
+      isFavorite: entry.isFavorite ?? false,
+      weather: entry.weather,
+      createdAt: entry.createdAt || now,
+      updatedAt: now,
+    };
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = {
+        ...list[existingIndex],
+        ...fullEntry,
+        createdAt: list[existingIndex].createdAt,
+      };
+    } else {
+      list.unshift(fullEntry);
+    }
+
+    setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+
+    // Track word activity silently
+    const wordCount = fullEntry.body.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount > 0) {
+      this.recordActivity({ wordsWritten: wordCount, writingSessionsCount: 1 });
+    }
+
+    return fullEntry;
+  },
+
+  deleteJournalEntry(id: string): void {
+    const list = this.getJournalEntries().filter((e) => e.id !== id);
+    setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+  },
+
+  toggleFavoriteJournalEntry(id: string): boolean {
+    const list = this.getJournalEntries();
+    const entry = list.find((e) => e.id === id);
+    if (entry) {
+      entry.isFavorite = !entry.isFavorite;
+      setStorage(STORAGE_KEYS.JOURNAL_ENTRIES, list);
+      return entry.isFavorite;
+    }
+    return false;
+  },
+
+  // --- MY LIBRARY & READING NOOK ---
+  getLibraryBooks(): BookItem[] {
+    const list = getStorage<BookItem[]>(STORAGE_KEYS.LIBRARY_BOOKS, []);
+    if (list.length === 0) {
+      setStorage(STORAGE_KEYS.LIBRARY_BOOKS, CURATED_BOOKS);
+      return CURATED_BOOKS;
+    }
+    return list;
+  },
+
+  getBookById(id: string): BookItem | null {
+    const list = this.getLibraryBooks();
+    return list.find((b) => b.id === id) || null;
+  },
+
+  saveBook(book: Partial<BookItem> & { id: string }): BookItem {
+    const list = this.getLibraryBooks();
+    const existingIndex = list.findIndex((b) => b.id === book.id);
+
+    const fullBook: BookItem = {
+      id: book.id,
+      title: book.title || "Untitled Book",
+      author: book.author || "Unknown Author",
+      genre: book.genre || "Literature",
+      status: book.status || "want_to_read",
+      progressPercent: book.progressPercent ?? 0,
+      rating: book.rating,
+      personalNotes: book.personalNotes || "",
+      favoriteQuotes: book.favoriteQuotes || [],
+      coverColor: book.coverColor || "#65745A",
+      coverSubtitle: book.coverSubtitle,
+      estimatedPages: book.estimatedPages || 200,
+      currentPage: book.currentPage || 0,
+      startedDate: book.startedDate,
+      finishedDate: book.finishedDate,
+      sourceLink: book.sourceLink,
+    };
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = { ...list[existingIndex], ...fullBook };
+    } else {
+      list.unshift(fullBook);
+    }
+
+    setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+    return fullBook;
+  },
+
+  updateBookStatus(id: string, status: BookItem["status"], progressPercent?: number): void {
+    const list = this.getLibraryBooks();
+    const book = list.find((b) => b.id === id);
+    if (book) {
+      book.status = status;
+      if (progressPercent !== undefined) {
+        book.progressPercent = progressPercent;
+      }
+      if (status === "finished") {
+        book.progressPercent = 100;
+        book.finishedDate = new Date().toISOString().split("T")[0];
+        this.recordActivity({ readingsCompleted: 1 });
+      }
+      setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+    }
+  },
+
+  updateBookNotes(id: string, notes: string, quotes?: string[]): void {
+    const list = this.getLibraryBooks();
+    const book = list.find((b) => b.id === id);
+    if (book) {
+      book.personalNotes = notes;
+      if (quotes) book.favoriteQuotes = quotes;
+      setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
+    }
+  },
+
+  deleteBook(id: string): void {
+    const list = this.getLibraryBooks().filter((b) => b.id !== id);
+    setStorage(STORAGE_KEYS.LIBRARY_BOOKS, list);
   },
 
   clearAllUserData(): void {

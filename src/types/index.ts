@@ -207,3 +207,51 @@ export interface MistakePattern {
   typicalRule: string;
   recentExamples: string[];
 }
+
+export interface JournalEntry {
+  id: string;
+  title: string;
+  body: string;
+  date: string; // YYYY-MM-DD
+  time?: string;
+  mood?: MoodType;
+  tags: string[];
+  isFavorite: boolean;
+  weather?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BookItem {
+  id: string;
+  title: string;
+  author: string;
+  genre: string;
+  status: "currently_reading" | "want_to_read" | "finished" | "favorite";
+  progressPercent: number; // 0-100
+  rating?: number; // 1-5
+  personalNotes?: string;
+  favoriteQuotes?: string[];
+  coverColor: string;
+  coverSubtitle?: string;
+  estimatedPages: number;
+  currentPage?: number;
+  startedDate?: string;
+  finishedDate?: string;
+  sourceLink?: string;
+}
+
+export interface LiteraryDiscovery {
+  id: string;
+  title: string;
+  author: string;
+  type: "book" | "poem" | "essay" | "quote" | "author";
+  content?: string;
+  excerpt: string;
+  source?: string;
+  year?: string;
+  mood?: MoodType;
+  tags: string[];
+  coverColor?: string;
+}
+

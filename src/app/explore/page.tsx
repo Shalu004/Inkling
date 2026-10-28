@@ -1,15 +1,16 @@
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import React, { Suspense } from "react";
 import { ExploreView } from "@/components/explore/ExploreView";
 
 export default function ExplorePage() {
   return (
-    <div className="flex-1 flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <ExploreView />
-      </main>
-      <Footer />
-    </div>
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center p-12 text-[#777267] text-xs font-serif italic">
+          Gathering literary discoveries...
+        </div>
+      }
+    >
+      <ExploreView />
+    </Suspense>
   );
 }
